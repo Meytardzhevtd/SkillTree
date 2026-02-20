@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # Сервис базы данных
+  db:
+    image: postgres:15-alpine
+    container_name: skilltree-db
+    environment:
+      POSTGRES_DB: skilltree
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123465
+    ports:
+      - "5432:5432" # Доступ к БД с вашего компьютера
+    volumes:
+      - pgdata:/var/lib/postgresql/data # Сохранение данных после перезапуска
+    networks:
+      - skilltree-network
+
+  # Сервис приложения
+  app:
+    build: .
+    container_name: skilltree-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db # Запускать после базы
+    environment:
+      # Передаем настройки через переменные окружения (лучший способ для Docker)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/skilltree # Обратите внимание: host = 'db'
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123465
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: true
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: true
+    networks:
+      - skilltree-network
+
+networks:
+  skilltree-network:
+    driver: bridge
+
+volumes:
+  pgdata:

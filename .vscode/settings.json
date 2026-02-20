@@ -1,0 +1,13 @@
+{
+    "java.project.sourcePaths": [
+        "src/main/java",
+        "src/test/java"
+    ],
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar"
+    ],
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.import.maven.enabled": true,
+    "spring-boot.dashboard.refresh": true,
+    "java.compile.nullAnalysis.mode": "automatic"
+}
