@@ -1,4 +1,4 @@
-package com.skilltree.Model;
+package com.skilltree.model;
 
 import jakarta.persistence.*;
 import lombok.*;

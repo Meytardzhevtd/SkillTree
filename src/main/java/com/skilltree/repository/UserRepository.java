@@ -1,7 +1,7 @@
 package com.skilltree.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import com.skilltree.Model.User;
+import com.skilltree.model.User;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
 

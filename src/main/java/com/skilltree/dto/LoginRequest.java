@@ -1,9 +1,13 @@
 package com.skilltree.dto;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class LoginRequest {
-    private final String email;
-    private final String password;
+    private String email;
+    private String password;
 }
