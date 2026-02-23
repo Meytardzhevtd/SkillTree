@@ -1,26 +1,34 @@
 # SkillTree
 
-Минимальный шаблон Spring Boot (Java 21) с запуском через Docker одной командой.
+Проект разделен на две части:
+- `backend` — Spring Boot API (порт `8080`)
+- `frontend` — React + TypeScript (Vite, порт `5173`)
 
-## Что внутри
+## Как запускать локально
 
-- Spring Boot 3 (`spring-boot-starter-web`)
-- Простой REST-контроллер:
-	- `GET /` → `SkillTree API is running`
-	- `GET /api/hello` → `Hello from Spring Boot!`
-- Multi-stage `Dockerfile`
-- `docker-compose.yml` для быстрого старта
-
-## Запуск одной командой
+1. Запустить backend:
 
 ```bash
-docker compose up --build
+cd backend
+./mvnw spring-boot:run
 ```
 
-После запуска приложение доступно на `http://localhost:8080`.
-
-## Остановка
+2. Запустить frontend (в отдельном терминале):
 
 ```bash
-docker compose down
+cd frontend
+npm install
+npm run dev
 ```
+
+Frontend настроен через Vite proxy и отправляет запросы на backend по пути `/api`.
+
+## Основные API для MVP личного кабинета
+
+- `GET /api/hello` — проверка связи frontend ↔ backend
+- `POST /api/auth/register` — регистрация
+- `GET /api/profile/me?email=...` — получить профиль пользователя
+
+## Docker
+
+Файл `docker-compose.yml` находится в папке `backend`.
