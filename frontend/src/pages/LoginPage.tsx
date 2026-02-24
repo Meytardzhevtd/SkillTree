@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { loginUser } from '../services/authApi.ts'
+import { saveAccessToken } from '../services/authStorage'
 
 type LoginFormState = {
     email: string
@@ -8,6 +10,8 @@ type LoginFormState = {
 }
 
 function LoginPage() {
+    const navigate = useNavigate()
+
     const [form, setForm] = useState<LoginFormState>({
         email: '',
         password: '',
@@ -36,9 +40,13 @@ function LoginPage() {
                 password: form.password,
             })
 
-            localStorage.setItem('accessToken', authData.token)
+            // Сохраняем JWT через отдельный helper (единая точка хранения токена).
+            saveAccessToken(authData.token)
             setSuccessMessage('Вход выполнен. JWT сохранён в localStorage.')
             setForm((prev) => ({ ...prev, password: '' }))
+
+            // После успешного входа отправляем пользователя в защищённый личный кабинет.
+            navigate('/dashboard')
         } catch (error) {
             if (error instanceof Error) {
                 setErrorMessage(error.message)

@@ -29,6 +29,9 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: maven
+      
+      - name: Validate formatting
+        run: mvn -B formatter:validate
 
       - name: Run backend tests
         run: mvn -B test
