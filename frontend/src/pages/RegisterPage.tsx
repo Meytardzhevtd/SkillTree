@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { registerUser } from '../services/authApi.ts'
 
 type RegisterFormState = {
     username: string
@@ -28,30 +29,21 @@ function RegisterPage() {
         setIsSubmitting(true)
 
         try {
-            const response = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    username: form.username,
-                    email: form.email,
-                    password: form.password,
-                }),
+            const message = await registerUser({
+                username: form.username,
+                email: form.email,
+                password: form.password,
             })
-
-            const message = await response.text()
-
-            if (!response.ok) {
-                setErrorMessage(message || 'Ошибка регистрации')
-                return
-            }
 
             setSuccessMessage(message || 'Регистрация прошла успешно')
 
             setForm({ username: '', email: '', password: '' })
-        } catch {
-            setErrorMessage('Не удалось отправить запрос. Проверь, запущен ли backend на :8080')
+        } catch (error) {
+            if (error instanceof Error) {
+                setErrorMessage(error.message)
+            } else {
+                setErrorMessage('Ошибка регистрации')
+            }
         } finally {
             setIsSubmitting(false)
         }

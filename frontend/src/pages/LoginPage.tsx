@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { loginUser } from '../services/authApi.ts'
 
 type LoginFormState = {
     email: string
@@ -30,27 +31,19 @@ function LoginPage() {
         setIsSubmitting(true)
 
         try {
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email: form.email,
-                    password: form.password,
-                }),
+            const message = await loginUser({
+                email: form.email,
+                password: form.password,
             })
 
-            const message = await response.text()
-
-            if (!response.ok) {
-                setErrorMessage(message || 'Ошибка входа')
-                return
-            }
             setSuccessMessage(message || 'Вход выполнен')
             setForm((prev) => ({ ...prev, password: '' }))
-        } catch {
-            setErrorMessage('Не удалось отправить запрос. Проверь, запущен ли backend на :8080')
+        } catch (error) {
+            if (error instanceof Error) {
+                setErrorMessage(error.message)
+            } else {
+                setErrorMessage('Ошибка входа')
+            }
         } finally {
             setIsSubmitting(false)
         }
