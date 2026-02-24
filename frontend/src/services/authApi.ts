@@ -9,7 +9,12 @@ export type LoginPayload = {
   password: string
 }
 
-async function postAuth(path: string, payload: RegisterPayload | LoginPayload): Promise<string> {
+export type LoginResponse = {
+  token: string
+  tokenType: string
+}
+
+async function postAuthAsText(path: string, payload: RegisterPayload): Promise<string> {
   try {
     const response = await fetch(path, {
       method: 'POST',
@@ -35,10 +40,36 @@ async function postAuth(path: string, payload: RegisterPayload | LoginPayload): 
   }
 }
 
-export async function registerUser(payload: RegisterPayload): Promise<string> {
-  return postAuth('/api/auth/register', payload)
+async function postAuthAsJson<T>(path: string, payload: LoginPayload): Promise<T> {
+  try {
+    const response = await fetch(path, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+
+    if (!response.ok) {
+      const message = await response.text()
+      throw new Error(message || 'Ошибка запроса к серверу')
+    }
+
+    const data = (await response.json()) as T
+    return data
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error
+    }
+
+    throw new Error('Не удалось отправить запрос. Проверь, запущен ли backend на :8080')
+  }
 }
 
-export async function loginUser(payload: LoginPayload): Promise<string> {
-  return postAuth('/api/auth/login', payload)
+export async function registerUser(payload: RegisterPayload): Promise<string> {
+  return postAuthAsText('/api/auth/register', payload)
+}
+
+export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
+  return postAuthAsJson<LoginResponse>('/api/auth/login', payload)
 }

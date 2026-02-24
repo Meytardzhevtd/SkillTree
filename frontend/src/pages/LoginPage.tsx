@@ -31,12 +31,13 @@ function LoginPage() {
         setIsSubmitting(true)
 
         try {
-            const message = await loginUser({
+            const authData = await loginUser({
                 email: form.email,
                 password: form.password,
             })
 
-            setSuccessMessage(message || 'Вход выполнен')
+            localStorage.setItem('accessToken', authData.token)
+            setSuccessMessage('Вход выполнен. JWT сохранён в localStorage.')
             setForm((prev) => ({ ...prev, password: '' }))
         } catch (error) {
             if (error instanceof Error) {
