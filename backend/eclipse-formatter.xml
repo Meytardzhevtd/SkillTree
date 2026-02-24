@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<profiles version="21">
+    <profile kind="CodeFormatterProfile" name="Custom" version="21">
+
+        <!-- Максимальная длина строки -->
+        <setting id="org.eclipse.jdt.core.formatter.lineSplit" value="100"/>
+
+        <!-- Перенос параметров метода -->
+        <setting id="org.eclipse.jdt.core.formatter.alignment_for_parameters_in_method_declaration"
+                 value="16"/>
+
+        <!-- Перенос аргументов вызова -->
+        <setting id="org.eclipse.jdt.core.formatter.alignment_for_arguments_in_method_invocation"
+                 value="16"/>
+
+        <!-- Перенос в аннотациях -->
+        <setting id="org.eclipse.jdt.core.formatter.alignment_for_arguments_in_annotation"
+                 value="16"/>
+
+    </profile>
+</profiles>

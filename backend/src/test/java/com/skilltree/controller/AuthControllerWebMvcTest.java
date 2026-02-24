@@ -2,6 +2,7 @@ package com.skilltree.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skilltree.model.User;
+import com.skilltree.Service.JwtService;
 import com.skilltree.Service.UserService;
 import com.skilltree.dto.RegisterRequest;
 import org.junit.jupiter.api.Test;
@@ -25,33 +26,37 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 class AuthControllerWebMvcTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+	@Autowired
+	private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+	@Autowired
+	private ObjectMapper objectMapper;
 
-    @MockBean
-    private UserService userService;
+	@MockBean
+	private UserService userService;
 
-    @Test
-    void register_whenRequestIsValid_returns201AndCallsService() throws Exception {
-        RegisterRequest request = new RegisterRequest("student_1", "student1@example.com", "strong-password");
+	@MockBean
+	private JwtService jwtService;
 
-        when(userService.register(any(RegisterRequest.class)))
-                .thenReturn(new User(1L, "student_1", "student1@example.com", "hashed-password"));
+	@Test
+	void register_whenRequestIsValid_returns201AndCallsService() throws Exception {
+		RegisterRequest request = new RegisterRequest("student_1", "student1@example.com",
+				"strong-password");
 
-        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))).andExpect(status().isCreated())
-                .andExpect(content().string("User registered successfully"));
+		when(userService.register(any(RegisterRequest.class)))
+				.thenReturn(new User(1L, "student_1", "student1@example.com", "hashed-password"));
 
-        ArgumentCaptor<RegisterRequest> captor = ArgumentCaptor.forClass(RegisterRequest.class);
-        verify(userService).register(captor.capture());
+		mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(request))).andExpect(status().isCreated())
+				.andExpect(content().string("User registered successfully"));
 
-        RegisterRequest captured = captor.getValue();
+		ArgumentCaptor<RegisterRequest> captor = ArgumentCaptor.forClass(RegisterRequest.class);
+		verify(userService).register(captor.capture());
 
-        assertThat(captured.getUsername()).isEqualTo("student_1");
-        assertThat(captured.getEmail()).isEqualTo("student1@example.com");
-        assertThat(captured.getPassword()).isEqualTo("strong-password");
-    }
+		RegisterRequest captured = captor.getValue();
+
+		assertThat(captured.getUsername()).isEqualTo("student_1");
+		assertThat(captured.getEmail()).isEqualTo("student1@example.com");
+		assertThat(captured.getPassword()).isEqualTo("strong-password");
+	}
 }

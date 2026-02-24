@@ -2,6 +2,7 @@ package com.skilltree.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skilltree.model.User;
+import com.skilltree.Service.JwtService;
 import com.skilltree.Service.UserService;
 import com.skilltree.dto.RegisterRequest;
 import org.junit.jupiter.api.Nested;
@@ -23,47 +24,54 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 class AuthControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+	@Autowired
+	private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+	@Autowired
+	private ObjectMapper objectMapper;
 
-    @MockBean
-    private UserService userService;
+	@MockBean
+	private UserService userService;
 
-    @Nested
-    class RegisterEndpointTests {
+	@MockBean
+	private JwtService jwtService;
 
-        @Test
-        void register_whenValidData_returns201() throws Exception {
-            RegisterRequest request = new RegisterRequest("user", "user@test.com", "password123");
-            when(userService.register(any())).thenReturn(new User(1L, "user", "user@test.com", "hash"));
+	@Nested
+	class RegisterEndpointTests {
 
-            mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))).andExpect(status().isCreated())
-                    .andExpect(content().string("User registered successfully"));
+		@Test
+		void register_whenValidData_returns201() throws Exception {
+			RegisterRequest request = new RegisterRequest("user", "user@test.com", "password123");
+			when(userService.register(any()))
+					.thenReturn(new User(1L, "user", "user@test.com", "hash"));
 
-            verify(userService).register(any(RegisterRequest.class));
-        }
+			mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+					.content(objectMapper.writeValueAsString(request)))
+					.andExpect(status().isCreated())
+					.andExpect(content().string("User registered successfully"));
 
-        @Test
-        void register_whenServiceThrows_returns400WithMessage() throws Exception {
-            RegisterRequest request = new RegisterRequest("user", "user@test.com", "123");
+			verify(userService).register(any(RegisterRequest.class));
+		}
 
-            when(userService.register(any())).thenThrow(new RuntimeException("Email already exists"));
+		@Test
+		void register_whenServiceThrows_returns400WithMessage() throws Exception {
+			RegisterRequest request = new RegisterRequest("user", "user@test.com", "123");
 
-            mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))).andExpect(status().isBadRequest())
-                    .andExpect(content().string("Email already exists"));
-        }
-    }
+			when(userService.register(any()))
+					.thenThrow(new RuntimeException("Email already exists"));
 
-    @Nested
-    class LoginEndpointTests {
-        @Test
-        void login_whenCorrectCredentials_returns200() throws Exception {
-            // TODO
-        }
-    }
+			mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+					.content(objectMapper.writeValueAsString(request)))
+					.andExpect(status().isBadRequest())
+					.andExpect(content().string("Email already exists"));
+		}
+	}
+
+	@Nested
+	class LoginEndpointTests {
+		@Test
+		void login_whenCorrectCredentials_returns200() throws Exception {
+			// TODO
+		}
+	}
 }
