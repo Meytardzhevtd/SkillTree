@@ -41,8 +41,7 @@ class AuthControllerTest {
             when(userService.register(any())).thenReturn(new User(1L, "user", "user@test.com", "hash"));
 
             mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isCreated())
+                    .content(objectMapper.writeValueAsString(request))).andExpect(status().isCreated())
                     .andExpect(content().string("User registered successfully"));
 
             verify(userService).register(any(RegisterRequest.class));
@@ -55,8 +54,7 @@ class AuthControllerTest {
             when(userService.register(any())).thenThrow(new RuntimeException("Email already exists"));
 
             mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest())
+                    .content(objectMapper.writeValueAsString(request))).andExpect(status().isBadRequest())
                     .andExpect(content().string("Email already exists"));
         }
     }

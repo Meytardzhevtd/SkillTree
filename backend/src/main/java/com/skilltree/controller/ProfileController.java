@@ -22,7 +22,8 @@ public class ProfileController {
     public ResponseEntity<?> me(@RequestParam String email) {
         try {
             User user = userService.findByEmail(email);
-            ProfileResponse response = new ProfileResponse(user.getId(), user.getUsername(), user.getEmail(), user.getRole());
+            ProfileResponse response = new ProfileResponse(user.getId(), user.getUsername(), user.getEmail(),
+                    user.getRole());
             return ResponseEntity.ok(response);
         } catch (RuntimeException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
