@@ -7,7 +7,6 @@ function MainLayout() {
   const authenticated = isAuthenticated()
 
   const handleLogout = () => {
-    // Logout в JWT-MVP: просто удаляем токен на клиенте.
     clearAccessToken()
     navigate('/login')
   }
@@ -19,11 +18,7 @@ function MainLayout() {
         <nav style={{ marginTop: '8px', display: 'flex', gap: '12px' }}>
           <Link to="/login">Вход</Link>
           <Link to="/register">Регистрация</Link>
-
-          {/* Ссылка в защищённый раздел — доступ откроется только при наличии токена. */}
           <Link to="/dashboard">Личный кабинет</Link>
-
-          {/* Кнопку logout показываем только когда пользователь авторизован. */}
           {authenticated && (
             <button type="button" onClick={handleLogout}>
               Выйти

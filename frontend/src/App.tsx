@@ -11,12 +11,6 @@ function App() {
       <Route element={<MainLayout />}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-
-        {/*
-          Защищённая группа маршрутов:
-          сначала проверяем токен в ProtectedRoute,
-          затем показываем вложенные страницы (например dashboard).
-        */}
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
         </Route>

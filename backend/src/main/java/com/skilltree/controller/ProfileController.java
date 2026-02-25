@@ -25,9 +25,6 @@ public class ProfileController {
 	@GetMapping("/me")
 	public ResponseEntity<?> me(Principal principal) {
 		try {
-			// После прохождения JWT-фильтра principal.getName() содержит email из токена
-			// (subject).
-			// Это безопаснее, чем принимать email как query-параметр от клиента.
 			if (principal == null) {
 				return ResponseEntity.status(401).body("Unauthorized");
 			}

@@ -2,14 +2,14 @@ package com.skilltree.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -34,26 +34,15 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http
-				// JWT + REST API: CSRF обычно отключают, потому что не используем
-				// cookie-сессию.
-				.csrf(AbstractHttpConfigurer::disable).cors(Customizer.withDefaults())
-				// Критично: при JWT мы не храним серверную HTTP-сессию.
+		http.csrf(AbstractHttpConfigurer::disable).cors(Customizer.withDefaults())
 				.sessionManagement(
 						session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				// Отключаем дефолтные формы/Basic, чтобы API не переходил в браузерный режим
-				// логина.
 				.formLogin(AbstractHttpConfigurer::disable)
 				.httpBasic(AbstractHttpConfigurer::disable)
 				.authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.OPTIONS, "/**")
-						.permitAll()
-						// Публичные endpoints (без токена):
-						.requestMatchers("/", "/api/hello", "/api/auth/**").permitAll()
-						// Всё остальное API — только с валидным JWT.
+						.permitAll().requestMatchers("/", "/api/hello", "/api/auth/**").permitAll()
 						.requestMatchers("/api/**").authenticated().anyRequest().authenticated());
 
-		// Подключаем наш JWT-фильтр перед стандартным
-		// UsernamePasswordAuthenticationFilter.
 		http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();

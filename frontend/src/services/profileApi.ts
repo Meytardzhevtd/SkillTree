@@ -10,7 +10,6 @@ export type ProfileResponse = {
 export async function getMyProfile(): Promise<ProfileResponse> {
   const token = getAccessToken()
 
-  // Если токена нет, запрос отправлять нет смысла.
   if (!token) {
     throw new Error('Вы не авторизованы. Выполните вход.')
   }
@@ -18,7 +17,6 @@ export async function getMyProfile(): Promise<ProfileResponse> {
   const response = await fetch('/api/profile/me', {
     method: 'GET',
     headers: {
-      // Ключевой момент JWT-потока: передаём токен в Bearer-заголовке.
       Authorization: `Bearer ${token}`,
     },
   })

@@ -6,7 +6,6 @@ import {
 } from '../services/profileApi'
 
 function DashboardPage() {
-  // Состояние для профиля и UI-статусов.
   const [profile, setProfile] = useState<ProfileResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -15,7 +14,6 @@ function DashboardPage() {
   const [saveMessage, setSaveMessage] = useState('')
 
   useEffect(() => {
-    // Загружаем профиль один раз при открытии страницы.
     const loadProfile = async () => {
       try {
         const data = await getMyProfile()

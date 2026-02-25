@@ -17,7 +17,6 @@ function LoginPage() {
         password: '',
     })
 
-    // true пока ждём ответ от backend.
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     const [successMessage, setSuccessMessage] = useState('')
@@ -40,12 +39,9 @@ function LoginPage() {
                 password: form.password,
             })
 
-            // Сохраняем JWT через отдельный helper (единая точка хранения токена).
             saveAccessToken(authData.token)
             setSuccessMessage('Вход выполнен. JWT сохранён в localStorage.')
             setForm((prev) => ({ ...prev, password: '' }))
-
-            // После успешного входа отправляем пользователя в защищённый личный кабинет.
             navigate('/dashboard')
         } catch (error) {
             if (error instanceof Error) {
