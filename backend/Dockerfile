@@ -2,6 +2,7 @@ FROM maven:3.9.9-eclipse-temurin-21 AS builder
 WORKDIR /app
 
 COPY pom.xml ./
+COPY eclipse-formatter.xml ./
 RUN mvn -q -DskipTests dependency:go-offline
 
 COPY src ./src

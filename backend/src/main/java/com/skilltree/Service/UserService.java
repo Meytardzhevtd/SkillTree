@@ -42,4 +42,15 @@ public class UserService {
 		return userRepository.findByEmail(email)
 				.orElseThrow(() -> new RuntimeException("User not found"));
 	}
+
+	@Transactional
+	public User updateUsernameByEmail(String email, String username) {
+		if (username == null || username.trim().isEmpty()) {
+			throw new RuntimeException("Username cannot be empty");
+		}
+
+		User user = findByEmail(email);
+		user.setUsername(username.trim());
+		return userRepository.save(user);
+	}
 }
