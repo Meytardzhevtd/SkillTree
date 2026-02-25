@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.skilltree.model.User;
 import com.skilltree.repository.UserRepository;
 import java.util.Optional;
+
 import com.skilltree.dto.*;
 
 @Service
@@ -45,10 +46,16 @@ public class UserService {
 
 	@Transactional
 	public User updateUsernameByEmail(String email, String username) {
+		username = username.trim();
 		if (username == null || username.trim().isEmpty()) {
 			throw new RuntimeException("Username cannot be empty");
 		}
-
+		if (username.length() < 3 || username.length() > 255) {
+			throw new RuntimeException("Length username from 3 to 255");
+		}
+		if (userRepository.existsByUsername(username)) {
+			throw new RuntimeException("This username is already occupied");
+		}
 		User user = findByEmail(email);
 		user.setUsername(username.trim());
 		return userRepository.save(user);
