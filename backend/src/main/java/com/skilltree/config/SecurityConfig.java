@@ -38,9 +38,19 @@ public class SecurityConfig {
 				.sessionManagement(
 						session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.formLogin(AbstractHttpConfigurer::disable)
-				.httpBasic(AbstractHttpConfigurer::disable)
-				.authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.OPTIONS, "/**")
-						.permitAll().requestMatchers("/", "/api/hello", "/api/auth/**").permitAll()
+				.httpBasic(AbstractHttpConfigurer::disable).authorizeHttpRequests(auth -> auth
+						// 1. Разрешаем OPTIONS запросы (для CORS preflight)
+						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+						// 2. РАЗРЕШАЕМ SWAGGER БЕЗ АУТЕНТИФИКАЦИИ
+						.requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
+								"/webjars/**")
+						.permitAll()
+
+						// 3. Ваши существующие публичные эндпоинты
+						.requestMatchers("/", "/api/hello", "/api/auth/**").permitAll()
+
+						// 4. Остальные API требуют авторизации
 						.requestMatchers("/api/**").authenticated().anyRequest().authenticated());
 
 		http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -51,10 +61,19 @@ public class SecurityConfig {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration config = new CorsConfiguration();
-		config.setAllowedOrigins(List.of("http://localhost:5173", "http://127.0.0.1:5173"));
+
+		// ДЛЯ РАЗРАБОТКИ: Разрешаем всё (или добавьте "http://localhost:8080")
+		config.setAllowedOrigins(List.of("*"));
+
+		// Если хотите безопасно, то добавьте явно:
+		// config.setAllowedOrigins(List.of("http://localhost:5173",
+		// "http://127.0.0.1:5173", "http://localhost:8080"));
+
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 		config.setAllowedHeaders(List.of("*"));
-		config.setAllowCredentials(true);
+		config.setAllowCredentials(true); // При "*" это может игнорироваться браузером, но для
+											// Swagger UI лучше
+											// оставить так или убрать allowCredentials
 
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", config);
