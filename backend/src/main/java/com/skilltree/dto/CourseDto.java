@@ -10,11 +10,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CourseDto {
-    private Long id;
-    private String name;
-    private String description;
+	private Long id;
+	private String name;
+	private String description;
 
-    public static CourseDto fromEntity(Course c) {
-        return new CourseDto(c.getId(), c.getName(), c.getDescription());
-    }
+	public static CourseDto fromEntity(Course c) {
+		return new CourseDto(c.getId(), c.getName(), c.getDescription());
+	}
 }
