@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserIdRequest {
-	private Long id;
+public class RegCourse {
+	private Long userId;
+	private String name;
+	private String description;
 }
