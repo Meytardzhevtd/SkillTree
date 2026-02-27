@@ -18,7 +18,5 @@ public class CourseService {
 	public void createCourse(Long userId, String name, String description) {
 		courseRepository.save(new Course(null, userId, name, description));
 	}
-    
-
 
 }
