@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: skilltree-db
+    environment:
+      POSTGRES_DB: skilltree
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123465
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - skilltree-network
+
+  app:
+    build: .
+    container_name: skilltree-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/skilltree
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123465
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: true
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: true
+    networks:
+      - skilltree-network
+
+networks:
+  skilltree-network:
+    driver: bridge
+
+volumes:
+  pgdata:
