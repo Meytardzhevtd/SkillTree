@@ -8,17 +8,17 @@ import com.skilltree.repository.CourseRepository;
 
 @Service
 public class CourseService {
-    private final CourseRepository courseRepository;
+	private final CourseRepository courseRepository;
 
-    @Autowired
-    public CourseService(CourseRepository courseRepository) {
-        this.courseRepository = courseRepository;
-    }
+	@Autowired
+	public CourseService(CourseRepository courseRepository) {
+		this.courseRepository = courseRepository;
+	}
 
-    public void createCourse(Long userId, String name, String description) {
-        courseRepository.save(new Course(null, userId, name, description));
-    }
-
+	public void createCourse(Long userId, String name, String description) {
+		courseRepository.save(new Course(null, userId, name, description));
+	}
     
+
 
 }
