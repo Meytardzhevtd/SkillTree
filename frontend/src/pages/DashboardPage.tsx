@@ -6,7 +6,7 @@ import {
   type ProfileResponse,
 } from '../services/profileApi'
 import { getCourses } from '../services/courseApi'
-import { CourseDto, ModuleDto, TaskDto } from '../services/types';
+import type { CourseDto, ModuleDto, TaskDto } from '../services/types';
 
 function DashboardPage() {
   const [profile, setProfile] = useState<ProfileResponse | null>(null)
