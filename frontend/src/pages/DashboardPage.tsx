@@ -5,7 +5,7 @@ import {
   updateMyProfileUsername,
   type ProfileResponse,
 } from '../services/profileApi'
-import { getCourses, type CourseDto } from '../services/courseApi'
+import { getCourses } from '../services/courseApi'
 
 function DashboardPage() {
   const [profile, setProfile] = useState<ProfileResponse | null>(null)
