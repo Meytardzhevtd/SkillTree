@@ -7,10 +7,10 @@ import com.skilltree.Service.CourseService;
 import com.skilltree.dto.CreateCourseRequest;
 import com.skilltree.dto.CreateModuleRequest;
 import com.skilltree.dto.CreateTaskRequest;
+import com.skilltree.dto.CourseDto;
 import com.skilltree.model.Course;
 import com.skilltree.model.Module;
 import com.skilltree.model.Task;
-import com.skilltree.dto.CourseDto;
 
 import java.util.List;
 import java.util.stream.Collectors;
