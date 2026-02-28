@@ -39,18 +39,15 @@ public class SecurityConfig {
 				.sessionManagement(
 						session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(auth -> auth
-						// Разрешаем все OPTIONS запросы (preflight)
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-						// Публичные эндпоинты
 						.requestMatchers("/api/auth/**").permitAll()
 						.requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
 						.permitAll()
 
-						// ПУБЛИЧНЫЙ эндпоинт для создания курсов
 						.requestMatchers("/api/course-manager/create-course").permitAll()
+						.requestMatchers("/api/course-manager/create-full-course").permitAll()
 
-						// Остальные API требуют авторизации
 						.requestMatchers("/api/**").authenticated().anyRequest().permitAll());
 
 		http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

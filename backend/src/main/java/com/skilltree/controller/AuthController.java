@@ -45,8 +45,14 @@ public class AuthController {
 		boolean success = userService.login(request);
 		if (success) {
 			String token = jwtService.generateToken(request.getEmail());
+
+			var user = userService.findByEmail(request.getEmail());
+
+			AuthResponse.UserInfo userInfo = new AuthResponse.UserInfo(user.getId(),
+					user.getUsername(), user.getEmail(), user.getRole().name());
+
 			log.info("Login success: email={}", request.getEmail());
-			return ResponseEntity.ok(new AuthResponse(token, "Bearer"));
+			return ResponseEntity.ok(new AuthResponse(token, "Bearer", userInfo));
 		} else {
 			log.warn("Login failed: email={}", request.getEmail());
 			return ResponseEntity.badRequest().body("Invalid credentials");
