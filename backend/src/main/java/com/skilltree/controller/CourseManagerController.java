@@ -28,15 +28,15 @@ public class CourseManagerController {
 	@GetMapping("/courses")
 	public ResponseEntity<List<CourseDto>> getCoursesByUserId(@RequestParam("userId") Long userId) {
 		List<Course> entities = courseService.getCoursesByUserId(userId);
-		List<CourseDto> courses = entities.stream()
-				.map(CourseDto::fromEntity)
+		List<CourseDto> courses = entities.stream().map(CourseDto::fromEntity)
 				.collect(Collectors.toList());
 		return ResponseEntity.ok(courses);
 	}
 
 	@PostMapping("/create-course")
 	public ResponseEntity<?> createCourse(@RequestBody CreateCourseRequest request) {
-		courseService.createCourse(request.getUserId(), request.getName(), request.getDescription());
+		courseService.createCourse(request.getUserId(), request.getName(),
+				request.getDescription());
 		return ResponseEntity.ok("Курс " + request.getName() + " создан");
 	}
 
@@ -47,13 +47,15 @@ public class CourseManagerController {
 	}
 
 	@PostMapping("/add-module")
-	public ResponseEntity<?> addModule(@RequestBody CreateModuleRequest request, @RequestParam Long courseId) {
+	public ResponseEntity<?> addModule(@RequestBody CreateModuleRequest request,
+			@RequestParam Long courseId) {
 		Module module = courseService.addModuleToCourse(courseId, request.getName());
 		return ResponseEntity.ok("Модуль " + module.getName() + " добавлен");
 	}
 
 	@PostMapping("/add-task")
-	public ResponseEntity<?> addTask(@RequestBody CreateTaskRequest request, @RequestParam Long moduleId) {
+	public ResponseEntity<?> addTask(@RequestBody CreateTaskRequest request,
+			@RequestParam Long moduleId) {
 		Task task = courseService.addTaskToModule(moduleId, request.getContent());
 		return ResponseEntity.ok("Задача добавлена в модуль");
 	}

@@ -26,10 +26,8 @@ public class CourseService {
 	private final TaskRepository taskRepository;
 	private final UserRepository userRepository;
 
-	public CourseService(CourseRepository courseRepository,
-						 ModuleRepository moduleRepository,
-						 TaskRepository taskRepository,
-						 UserRepository userRepository) {
+	public CourseService(CourseRepository courseRepository, ModuleRepository moduleRepository,
+			TaskRepository taskRepository, UserRepository userRepository) {
 		this.courseRepository = courseRepository;
 		this.moduleRepository = moduleRepository;
 		this.taskRepository = taskRepository;
@@ -39,8 +37,7 @@ public class CourseService {
 	public List<Course> getCoursesByUserId(Long userId) {
 		User user = userRepository.findById(userId).orElseThrow();
 		return courseRepository.findAll().stream()
-				.filter(c -> c.getUser().getId().equals(user.getId()))
-				.collect(Collectors.toList());
+				.filter(c -> c.getUser().getId().equals(user.getId())).collect(Collectors.toList());
 	}
 
 	public Course getCourseById(Long id) {
