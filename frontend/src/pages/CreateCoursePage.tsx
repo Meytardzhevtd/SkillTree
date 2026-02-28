@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createFullCourse } from '../services/courseApi';
 import { getUser } from '../services/authStorage';
 
@@ -11,14 +12,16 @@ const CreateCoursePage: React.FC = () => {
   const [currentModuleIndex, setCurrentModuleIndex] = useState<number | null>(null);
 
   const user = getUser();
+  const navigate = useNavigate();
 
   const handleAddModule = () => {
+    if (!moduleName.trim()) return;
     setModules([...modules, { name: moduleName, tasks: [] }]);
     setModuleName('');
   };
 
   const handleAddTask = () => {
-    if (currentModuleIndex === null) return;
+    if (currentModuleIndex === null || !taskContent.trim()) return;
     const newModules = [...modules];
     newModules[currentModuleIndex].tasks.push(taskContent);
     setModules(newModules);
@@ -27,6 +30,7 @@ const CreateCoursePage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!user) return alert('Необходима авторизация');
+    if (!name.trim()) return alert('Введите название курса');
 
     const payload = {
       userId: user.id,
@@ -40,10 +44,7 @@ const CreateCoursePage: React.FC = () => {
 
     try {
       await createFullCourse(payload);
-      alert('Курс создан!');
-      setName('');
-      setDescription('');
-      setModules([]);
+      navigate('/dashboard');  // редирект вместо белой страницы
     } catch (err: any) {
       console.error(err);
       alert(err.response?.data || 'Ошибка при создании курса');

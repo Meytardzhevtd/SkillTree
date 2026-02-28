@@ -6,7 +6,7 @@ import {
   type ProfileResponse,
 } from '../services/profileApi'
 import { getCourses } from '../services/courseApi'
-import type { CourseDto } from '../services/types';
+import type { CourseDto } from '../services/types'
 
 function DashboardPage() {
   const [profile, setProfile] = useState<ProfileResponse | null>(null)
@@ -17,6 +17,7 @@ function DashboardPage() {
   const [saveMessage, setSaveMessage] = useState('')
   const [courses, setCourses] = useState<CourseDto[]>([])
   const [coursesLoading, setCoursesLoading] = useState(true)
+  const [expandedCourseId, setExpandedCourseId] = useState<number | null>(null)
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -31,7 +32,6 @@ function DashboardPage() {
         setLoading(false)
       }
     }
-
     void loadProfile()
   }, [])
 
@@ -47,18 +47,15 @@ function DashboardPage() {
         setCoursesLoading(false)
       }
     }
-
     void loadCourses()
   }, [profile])
 
   const handleSaveUsername = async () => {
     setSaveMessage('')
-
     if (!usernameDraft.trim()) {
       setSaveMessage('Имя пользователя не может быть пустым')
       return
     }
-
     try {
       setSaving(true)
       const updatedProfile = await updateMyProfileUsername(usernameDraft)
@@ -72,6 +69,10 @@ function DashboardPage() {
     }
   }
 
+  const toggleCourse = (id: number) => {
+    setExpandedCourseId(prev => (prev === id ? null : id))
+  }
+
   return (
     <div style={{ maxWidth: '640px', margin: '40px auto', padding: '16px' }}>
       <h1>Личный кабинет</h1>
@@ -82,23 +83,13 @@ function DashboardPage() {
       {profile && (
         <>
           <div style={{ lineHeight: 1.8, marginBottom: '24px' }}>
-            <p>
-              <strong>ID:</strong> {profile.id}
-            </p>
-            <p>
-              <strong>Username:</strong> {profile.username}
-            </p>
-            <p>
-              <strong>Email:</strong> {profile.email}
-            </p>
-            <p>
-              <strong>Role:</strong> {profile.role}
-            </p>
+            <p><strong>ID:</strong> {profile.id}</p>
+            <p><strong>Username:</strong> {profile.username}</p>
+            <p><strong>Email:</strong> {profile.email}</p>
+            <p><strong>Role:</strong> {profile.role}</p>
 
             <div style={{ marginTop: '16px' }}>
-              <label htmlFor="username-edit">
-                <strong>Изменить username</strong>
-              </label>
+              <label htmlFor="username-edit"><strong>Изменить username</strong></label>
               <br />
               <input
                 id="username-edit"
@@ -128,10 +119,39 @@ function DashboardPage() {
           {coursesLoading && <p>Загрузка курсов...</p>}
           {!coursesLoading && courses.length === 0 && <p>Курсы отсутствуют</p>}
           {!coursesLoading && courses.length > 0 && (
-            <ul>
+            <ul style={{ listStyle: 'none', padding: 0 }}>
               {courses.map(course => (
-                <li key={course.id}>
-                  <strong>{course.name}</strong> — {course.description}
+                <li key={course.id} style={{ border: '1px solid #ccc', borderRadius: '6px', marginBottom: '8px', padding: '12px' }}>
+                  <div
+                    onClick={() => toggleCourse(course.id)}
+                    style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }}
+                  >
+                    <span><strong>{course.name}</strong> — {course.description}</span>
+                    <span>{expandedCourseId === course.id ? '▲' : '▼'}</span>
+                  </div>
+
+                  {expandedCourseId === course.id && (
+                    <div style={{ marginTop: '8px', paddingLeft: '12px' }}>
+                      {!course.modules || course.modules.length === 0 ? (
+                        <p style={{ color: '#888' }}>Модули отсутствуют</p>
+                      ) : (
+                        course.modules.map(mod => (
+                          <div key={mod.id} style={{ marginBottom: '8px' }}>
+                            <strong>📚 {mod.name}</strong>
+                            {!mod.tasks || mod.tasks.length === 0 ? (
+                              <p style={{ color: '#888', marginLeft: '12px' }}>Задания отсутствуют</p>
+                            ) : (
+                              <ul>
+                                {mod.tasks.map(task => (
+                                  <li key={task.id}>📝 {task.content}</li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
