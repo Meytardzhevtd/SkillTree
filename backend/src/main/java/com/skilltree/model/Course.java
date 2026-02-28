@@ -1,24 +1,26 @@
 package com.skilltree.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import java.util.List;
 
 @Entity
-@Table(name = "courses")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Course {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "user_id", nullable = false)
-	private Long userId;
+	@ManyToOne
+	@JoinColumn(name = "id_user", nullable = false)
+	private User user;
 
-	@Column(name = "name")
+	@Column(nullable = false)
 	private String name;
 
-	@Column(name = "description")
+	@Column(nullable = true)
 	private String description;
+
+	@OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+	private List<Module> modules;
+
+	// add getters!!!
 }

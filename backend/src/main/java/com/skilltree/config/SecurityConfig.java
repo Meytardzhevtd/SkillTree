@@ -63,7 +63,7 @@ public class SecurityConfig {
 		CorsConfiguration config = new CorsConfiguration();
 
 		// ДЛЯ РАЗРАБОТКИ: Разрешаем всё (или добавьте "http://localhost:8080")
-		config.setAllowedOrigins(List.of("*"));
+		config.setAllowedOrigins(List.of("http://localhost:5173"));
 
 		// Если хотите безопасно, то добавьте явно:
 		// config.setAllowedOrigins(List.of("http://localhost:5173",
