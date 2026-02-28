@@ -1,3 +1,5 @@
+import { saveAccessToken, saveUser } from './authStorage'
+
 export type RegisterPayload = {
   username: string
   email: string
@@ -11,59 +13,36 @@ export type LoginPayload = {
 
 export type LoginResponse = {
   token: string
-  tokenType: string
+  user: {
+    id: number
+    username: string
+    email: string
+    role: string
+  }
 }
 
 async function postAuthAsText(path: string, payload: RegisterPayload): Promise<string> {
-  try {
-    const response = await fetch(path, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    })
-
-    const message = await response.text()
-
-    if (!response.ok) {
-      throw new Error(message || 'Ошибка запроса к серверу')
-    }
-
-    return message
-  } catch (error) {
-    if (error instanceof Error) {
-      throw error
-    }
-
-    throw new Error('Не удалось отправить запрос. Проверь, запущен ли backend на :8080')
-  }
+  const res = await fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  const text = await res.text()
+  if (!res.ok) throw new Error(text || 'Ошибка запроса к серверу')
+  return text
 }
 
 async function postAuthAsJson<T>(path: string, payload: LoginPayload): Promise<T> {
-  try {
-    const response = await fetch(path, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    })
-
-    if (!response.ok) {
-      const message = await response.text()
-      throw new Error(message || 'Ошибка запроса к серверу')
-    }
-
-    const data = (await response.json()) as T
-    return data
-  } catch (error) {
-    if (error instanceof Error) {
-      throw error
-    }
-
-    throw new Error('Не удалось отправить запрос. Проверь, запущен ли backend на :8080')
+  const res = await fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) {
+    const msg = await res.text()
+    throw new Error(msg || 'Ошибка запроса к серверу')
   }
+  return res.json() as Promise<T>
 }
 
 export async function registerUser(payload: RegisterPayload): Promise<string> {
@@ -71,5 +50,8 @@ export async function registerUser(payload: RegisterPayload): Promise<string> {
 }
 
 export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
-  return postAuthAsJson<LoginResponse>('/api/auth/login', payload)
+  const data = await postAuthAsJson<LoginResponse>('/api/auth/login', payload)
+  saveAccessToken(data.token)
+  saveUser(data.user)
+  return data
 }
