@@ -1,54 +1,41 @@
-import { getAccessToken } from './authStorage'
+import { getToken } from './authStorage'
 
 export type ProfileResponse = {
   id: number
   username: string
   email: string
-  role: 'NONE' | 'BASE_USER' | 'ADMIN' | 'TOP_ADMIN'
+  role: string
 }
 
 export async function getMyProfile(): Promise<ProfileResponse> {
-  const token = getAccessToken()
+  const token = getToken()
+  if (!token) throw new Error('Необходима авторизация')
 
-  if (!token) {
-    throw new Error('Вы не авторизованы. Выполните вход.')
-  }
-
-  const response = await fetch('/api/profile/me', {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+  const res = await fetch('/api/profile/me', {
+    headers: { Authorization: `Bearer ${token}` },
   })
-
-  if (!response.ok) {
-    const message = await response.text()
-    throw new Error(message || 'Не удалось загрузить профиль')
+  if (!res.ok) {
+    const msg = await res.text()
+    throw new Error(msg || 'Ошибка запроса к серверу')
   }
-
-  return (await response.json()) as ProfileResponse
+  return res.json()
 }
 
 export async function updateMyProfileUsername(username: string): Promise<ProfileResponse> {
-  const token = getAccessToken()
+  const token = getToken()
+  if (!token) throw new Error('Необходима авторизация')
 
-  if (!token) {
-    throw new Error('Вы не авторизованы. Выполните вход.')
-  }
-
-  const response = await fetch('/api/profile/me', {
+  const res = await fetch('/api/profile/update', {
     method: 'PUT',
     headers: {
-      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ username }),
   })
-
-  if (!response.ok) {
-    const message = await response.text()
-    throw new Error(message || 'Не удалось обновить профиль')
+  if (!res.ok) {
+    const msg = await res.text()
+    throw new Error(msg || 'Ошибка обновления профиля')
   }
-
-  return (await response.json()) as ProfileResponse
+  return res.json()
 }

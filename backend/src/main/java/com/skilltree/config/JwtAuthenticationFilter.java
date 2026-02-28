@@ -1,11 +1,13 @@
 package com.skilltree.config;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -32,6 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(@NonNull HttpServletRequest request,
 			@NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
 			throws ServletException, IOException {
+
 		String authHeader = request.getHeader("Authorization");
 
 		if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -48,7 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 					&& jwtService.isTokenValid(token, email)) {
 
 				UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-						email, null, java.util.Collections.emptyList());
+						email, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
 
 				authentication
 						.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
