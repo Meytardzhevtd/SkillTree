@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute.tsx'
 import DashboardPage from './pages/DashboardPage.tsx'
 import LoginPage from './pages/LoginPage.tsx'
 import RegisterPage from './pages/RegisterPage.tsx'
+import CreateCoursePage from './pages/CreateCoursePage.tsx'
 
 function App() {
   return (
@@ -11,8 +12,10 @@ function App() {
       <Route element={<MainLayout />}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/create-course" element={<CreateCoursePage />} />
         </Route>
       </Route>
 

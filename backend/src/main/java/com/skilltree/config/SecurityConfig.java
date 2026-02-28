@@ -21,6 +21,7 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
 	public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
@@ -37,21 +38,20 @@ public class SecurityConfig {
 		http.csrf(AbstractHttpConfigurer::disable).cors(Customizer.withDefaults())
 				.sessionManagement(
 						session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.formLogin(AbstractHttpConfigurer::disable)
-				.httpBasic(AbstractHttpConfigurer::disable).authorizeHttpRequests(auth -> auth
-						// 1. Разрешаем OPTIONS запросы (для CORS preflight)
+				.authorizeHttpRequests(auth -> auth
+						// Разрешаем все OPTIONS запросы (preflight)
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-						// 2. РАЗРЕШАЕМ SWAGGER БЕЗ АУТЕНТИФИКАЦИИ
-						.requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
-								"/webjars/**")
+						// Публичные эндпоинты
+						.requestMatchers("/api/auth/**").permitAll()
+						.requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
 						.permitAll()
 
-						// 3. Ваши существующие публичные эндпоинты
-						.requestMatchers("/", "/api/hello", "/api/auth/**").permitAll()
+						// ПУБЛИЧНЫЙ эндпоинт для создания курсов
+						.requestMatchers("/api/course-manager/create-course").permitAll()
 
-						// 4. Остальные API требуют авторизации
-						.requestMatchers("/api/**").authenticated().anyRequest().authenticated());
+						// Остальные API требуют авторизации
+						.requestMatchers("/api/**").authenticated().anyRequest().permitAll());
 
 		http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -61,19 +61,10 @@ public class SecurityConfig {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration config = new CorsConfiguration();
-
-		// ДЛЯ РАЗРАБОТКИ: Разрешаем всё (или добавьте "http://localhost:8080")
 		config.setAllowedOrigins(List.of("http://localhost:5173"));
-
-		// Если хотите безопасно, то добавьте явно:
-		// config.setAllowedOrigins(List.of("http://localhost:5173",
-		// "http://127.0.0.1:5173", "http://localhost:8080"));
-
-		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-		config.setAllowedHeaders(List.of("*"));
-		config.setAllowCredentials(true); // При "*" это может игнорироваться браузером, но для
-											// Swagger UI лучше
-											// оставить так или убрать allowCredentials
+		config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+		config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+		config.setAllowCredentials(true);
 
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", config);
