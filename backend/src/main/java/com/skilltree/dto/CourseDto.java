@@ -1,6 +1,6 @@
 package com.skilltree.dto;
 
-import com.skilltree.model.Course;
+import com.skilltree.model.Courses;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,7 +17,7 @@ public class CourseDto {
 	private String description;
 	private List<ModuleDto> modules;
 
-	public static CourseDto fromEntity(Course c) {
+	public static CourseDto fromEntity(Courses c) {
 		CourseDto dto = new CourseDto();
 		dto.setId(c.getId());
 		dto.setName(c.getName());

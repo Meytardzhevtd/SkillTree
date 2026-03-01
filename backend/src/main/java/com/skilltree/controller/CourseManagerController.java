@@ -8,7 +8,7 @@ import com.skilltree.dto.CreateCourseRequest;
 import com.skilltree.dto.CreateModuleRequest;
 import com.skilltree.dto.CreateTaskRequest;
 import com.skilltree.dto.CourseDto;
-import com.skilltree.model.Course;
+import com.skilltree.model.Courses;
 import com.skilltree.model.Module;
 import com.skilltree.model.Task;
 
@@ -25,9 +25,9 @@ public class CourseManagerController {
 		this.courseService = courseService;
 	}
 
-	@GetMapping("/courses")
+	@GetMapping("/Courses")
 	public ResponseEntity<List<CourseDto>> getCoursesByUserId(@RequestParam("userId") Long userId) {
-		List<Course> entities = courseService.getCoursesByUserId(userId);
+		List<Courses> entities = courseService.getCoursesByUserId(userId);
 		List<CourseDto> courses = entities.stream().map(CourseDto::fromEntity)
 				.collect(Collectors.toList());
 		return ResponseEntity.ok(courses);
@@ -62,7 +62,7 @@ public class CourseManagerController {
 
 	@GetMapping("/course/{id}")
 	public ResponseEntity<CourseDto> getCourse(@PathVariable Long id) {
-		Course course = courseService.getCourseById(id);
+		Courses course = courseService.getCourseById(id);
 		return ResponseEntity.ok(CourseDto.fromEntity(course));
 	}
 }
