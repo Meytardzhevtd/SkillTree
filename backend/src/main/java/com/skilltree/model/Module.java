@@ -1,56 +1,45 @@
 package com.skilltree.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "module")
+@Table(name = "Module")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Module {
-
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+	@ManyToOne
+	@JoinColumn(name = "id_course", referencedColumnName = "id", nullable = false,
+			foreignKey = @ForeignKey(name = "fk_module_course", value = ConstraintMode.CONSTRAINT))
+	@OnDelete(action = OnDeleteAction.CASCADE)
+	private Courses course;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "id_course", nullable = false)
-	private Course course;
-
-	@Column(nullable = false)
+	@Column(name = "name", nullable = false)
 	private String name;
+
+	@Column(name = "can_be_open", nullable = false)
+	private Boolean can_be_open;
 
 	@OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Task> tasks = new ArrayList<>();
 
-	public Long getId() {
-		return id;
-	}
+	@OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Dependencies> dependencies = new ArrayList<>();
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+	@OneToMany(mappedBy = "block_module", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Dependencies> blockedBy = new ArrayList<>();
 
-	public Course getCourse() {
-		return course;
-	}
-
-	public void setCourse(Course course) {
-		this.course = course;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public List<Task> getTasks() {
-		return tasks;
-	}
-
-	public void setTasks(List<Task> tasks) {
-		this.tasks = tasks;
-	}
+	@OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<ProgressModule> progressModules = new ArrayList<>();
 }
