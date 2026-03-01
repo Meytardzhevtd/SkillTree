@@ -1,12 +1,10 @@
 package com.skilltree.Service;
 
-import com.skilltree.model.Course;
+import com.skilltree.model.Courses;
 import com.skilltree.model.Module;
 import com.skilltree.model.Task;
-import com.skilltree.model.User;
+import com.skilltree.model.Users;
 import com.skilltree.dto.CreateCourseRequest;
-import com.skilltree.dto.CreateModuleRequest;
-import com.skilltree.dto.CreateTaskRequest;
 import com.skilltree.repository.CourseRepository;
 import com.skilltree.repository.ModuleRepository;
 import com.skilltree.repository.TaskRepository;
@@ -15,7 +13,10 @@ import com.skilltree.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,22 +35,21 @@ public class CourseService {
 		this.userRepository = userRepository;
 	}
 
-	public List<Course> getCoursesByUserId(Long userId) {
+	public List<Courses> getCoursesByUserId(Long userId) {
 		// использует метод findByUserId в CourseRepository
 		return courseRepository.findByUserId(userId);
 	}
 
-	public Course getCourseById(Long id) {
+	public Courses getCourseById(Long id) {
 		return courseRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("Course not found"));
 	}
 
-	public Course createCourse(Long userId, String name, String description) {
-		User user = userRepository.findById(userId)
+	public Courses createCourse(Long userId, String name, String description) {
+		Users user = userRepository.findById(userId)
 				.orElseThrow(() -> new RuntimeException("User not found"));
 
-		Course course = new Course();
-		course.setUser(user);
+		Courses course = new Courses();
 		course.setName(name);
 		course.setDescription(description);
 
@@ -57,12 +57,11 @@ public class CourseService {
 	}
 
 	@Transactional
-	public Course createFullCourse(CreateCourseRequest request) {
-		User user = userRepository.findById(request.getUserId())
+	public Courses createFullCourse(CreateCourseRequest request) {
+		Users user = userRepository.findById(request.getUserId())
 				.orElseThrow(() -> new RuntimeException("User not found"));
 
-		Course course = new Course();
-		course.setUser(user);
+		Courses course = new Courses();
 		course.setName(request.getName());
 		course.setDescription(request.getDescription());
 
@@ -77,7 +76,13 @@ public class CourseService {
 							? List.of()
 							: mr.getTasks().stream().map(tr -> {
 								Task task = new Task();
-								task.setContent(tr.getContent());
+								Map<String, Object> content = new HashMap<>();
+								content.put("question", "Ваш вопрос здесь");
+								content.put("options",
+										Arrays.asList("Вариант 1", "Вариант 2", "Вариант 3"));
+								content.put("correctAnswer", 0);
+								content.put("points", 10);
+								task.setContent(content);
 								task.setModule(module);
 								return task;
 							}).collect(Collectors.toList());
@@ -92,7 +97,7 @@ public class CourseService {
 	}
 
 	public Module addModuleToCourse(Long courseId, String name) {
-		Course course = courseRepository.findById(courseId)
+		Courses course = courseRepository.findById(courseId)
 				.orElseThrow(() -> new RuntimeException("Course not found"));
 
 		Module module = new Module();
@@ -102,7 +107,7 @@ public class CourseService {
 		return moduleRepository.save(module);
 	}
 
-	public Task addTaskToModule(Long moduleId, String content) {
+	public Task addTaskToModule(Long moduleId, Map<String, Object> content) {
 		Module module = moduleRepository.findById(moduleId)
 				.orElseThrow(() -> new RuntimeException("Module not found"));
 

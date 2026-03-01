@@ -1,7 +1,7 @@
 package com.skilltree.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.skilltree.model.User;
+import com.skilltree.model.Users;
 import com.skilltree.model.Role;
 import com.skilltree.Service.JwtService;
 import com.skilltree.Service.UserService;
@@ -45,7 +45,7 @@ class AuthControllerTest {
 		void register_whenValidData_returns201() throws Exception {
 			RegisterRequest request = new RegisterRequest("user", "user@test.com", "password123");
 
-			User user = new User(1L, "user", "user@test.com", "hash");
+			Users user = new Users(1L, "user", "user@test.com", "hash");
 			user.setRole(Role.BASE_USER);
 
 			when(userService.register(any())).thenReturn(user);
@@ -80,7 +80,7 @@ class AuthControllerTest {
 
 			LoginRequest request = new LoginRequest("user@test.com", "password123");
 
-			User user = new User(1L, "user", "user@test.com", "hash");
+			Users user = new Users(1L, "user", "user@test.com", "hash");
 			user.setRole(Role.BASE_USER);
 
 			when(userService.login(any(LoginRequest.class))).thenReturn(true);

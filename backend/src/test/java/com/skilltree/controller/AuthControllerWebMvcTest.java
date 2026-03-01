@@ -1,7 +1,7 @@
 package com.skilltree.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.skilltree.model.User;
+import com.skilltree.model.Users;
 import com.skilltree.model.Role;
 import com.skilltree.Service.JwtService;
 import com.skilltree.Service.UserService;
@@ -44,7 +44,7 @@ class AuthControllerWebMvcTest {
 		RegisterRequest request = new RegisterRequest("student_1", "student1@example.com",
 				"strong-password");
 
-		User user = new User(1L, "student_1", "student1@example.com", "hashed-password");
+		Users user = new Users(1L, "student_1", "student1@example.com", "hashed-password");
 
 		user.setRole(Role.BASE_USER);
 
