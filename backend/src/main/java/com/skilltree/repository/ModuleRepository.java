@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ModuleRepository extends JpaRepository<Module, Long> {
 
-    boolean existsById(Long id);
+	boolean existsById(Long id);
 }
