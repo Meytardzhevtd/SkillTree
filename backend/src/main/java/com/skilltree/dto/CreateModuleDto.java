@@ -7,6 +7,6 @@ import lombok.*;
 @Setter
 @Getter
 public class CreateModuleDto {
-    private Long courseId;
-    private String name;
+	private Long courseId;
+	private String name;
 }

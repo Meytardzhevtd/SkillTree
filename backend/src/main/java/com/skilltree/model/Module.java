@@ -20,7 +20,8 @@ public class Module {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	@ManyToOne
-	@JoinColumn(name = "id_course", referencedColumnName = "id", nullable = false, foreignKey = @ForeignKey(name = "fk_module_course", value = ConstraintMode.CONSTRAINT))
+	@JoinColumn(name = "id_course", referencedColumnName = "id", nullable = false,
+			foreignKey = @ForeignKey(name = "fk_module_course", value = ConstraintMode.CONSTRAINT))
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	private Courses course;
 
