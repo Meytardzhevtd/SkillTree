@@ -20,8 +20,7 @@ public class Module {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	@ManyToOne
-	@JoinColumn(name = "id_course", referencedColumnName = "id", nullable = false,
-			foreignKey = @ForeignKey(name = "fk_module_course", value = ConstraintMode.CONSTRAINT))
+	@JoinColumn(name = "id_course", referencedColumnName = "id", nullable = false, foreignKey = @ForeignKey(name = "fk_module_course", value = ConstraintMode.CONSTRAINT))
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	private Courses course;
 
@@ -42,4 +41,11 @@ public class Module {
 
 	@OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<ProgressModule> progressModules = new ArrayList<>();
+
+	public Module(Long id, Courses course, String name, Boolean can_be_open) {
+		this.id = id;
+		this.course = course;
+		this.name = name;
+		this.can_be_open = can_be_open;
+	}
 }
