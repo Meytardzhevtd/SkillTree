@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.skilltree.dto.tasks.CreateTaskDto;
 import com.skilltree.dto.tasks.TaskResponse;
+import com.skilltree.dto.tasks.UpdateTaskDto;
+import com.skilltree.exception.TaskNotFoundException;
 import com.skilltree.model.Module;
 import com.skilltree.model.Task;
 import com.skilltree.model.TaskTypes;
@@ -32,6 +34,15 @@ public class TaskService {
 		this.moduleRepository = moduleRepository;
 	}
 
+	private Task getTaskOrThrow(Long taskId) {
+		Optional<Task> oTask = taskRepository.findById(taskId);
+		if (oTask.isPresent()) {
+			return oTask.get();
+		} else {
+			throw new TaskNotFoundException(taskId);
+		}
+	}
+
 	@Transactional
 	public TaskResponse create(CreateTaskDto createTaskDto) {
 		Optional<TaskTypes> taskType = taskTypeRepository.findById(createTaskDto.getTaskTypeId());
@@ -48,17 +59,24 @@ public class TaskService {
 	}
 
 	public TaskResponse get(Long taskId) {
-		Optional<Task> oTask = taskRepository.findById(taskId);
-		if (oTask.isPresent()) {
-			Task task = oTask.get();
-			return new TaskResponse(
-					task.getId(),
-					task.getTask_type().getId(),
-					task.getModule().getId(),
-					task.getContent());
-		} else {
-			throw new RuntimeException("Task with id = " + taskId + " not foound");
-		}
+		Task task = getTaskOrThrow(taskId);
+		return TaskResponse.of(task);
 	}
 
+	@Transactional
+	public TaskResponse update(UpdateTaskDto updateTaskDto) {
+		Task task = getTaskOrThrow(updateTaskDto.getId());
+		Optional<TaskTypes> oTaskType = taskTypeRepository.findById(updateTaskDto.getTaskTypeId());
+		if (oTaskType.isPresent() == false) {
+			throw new RuntimeException("TODO: надо кастомные");
+		}
+		task.setTask_type(oTaskType.get());
+		task.setContent(updateTaskDto.getContent());
+		return TaskResponse.of(taskRepository.save(task));
+	}
+
+	@Transactional
+	public void delete(Long id) {
+		
+	}
 }
