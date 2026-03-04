@@ -1,5 +1,6 @@
 package com.skilltree.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,11 +10,13 @@ import org.springframework.transaction.annotation.Transactional;
 import com.skilltree.dto.CreateModuleDto;
 import com.skilltree.exception.ModuleNotFoundException;
 import com.skilltree.model.Courses;
+import com.skilltree.model.Dependencies;
 import com.skilltree.repository.CourseRepository;
 import com.skilltree.repository.DependencyRepository;
 import com.skilltree.repository.ModuleRepository;
 import com.skilltree.repository.ProgressModuleRepository;
 import com.skilltree.model.Module;
+import com.skilltree.model.ProgressModule;
 
 @Transactional(readOnly = true)
 @Service
@@ -54,30 +57,39 @@ public class ModuleService {
 		return saved;
 	}
 
-	/**
-	 * Пока не нравится. Мб вообще метод не нужен тк все само по себе должно
-	 * вычилсяться через депенденсы
-	 */
-	// @Transactional
-	// public void changeTheModuleAvailable(Long moduleId, Boolean isOpen) {
-	// // ставит open_modele = isOpen
-	// Optional<Module> oModule = moduleRepository.findById(moduleId);
-	// if (oModule.isPresent()) {
-	// Module module = oModule.get();
-	// module.setCan_be_open(isOpen);
-	// moduleRepository.save(module);
-	// } else {
-	// throw new RuntimeException("Module with id = " + moduleId + " not found");
-	// }
-	// }
-
 	@Transactional
-	public void delete(Long moduleId) {
-		if (moduleRepository.existsById(moduleId)) {
-			moduleRepository.deleteById(moduleId);
-		} else {
-			throw new RuntimeException("Module with id = " + moduleId + " not found");
+	public void tryOpenModuleForTakenCourse(Long moduleId, Long takenCourseId) {
+		Module module = findModuleOrThrow(moduleId);
+		if (Boolean.TRUE.equals(module.getCan_be_open()))
+			return;
+
+		// получить все зависимости: какие модули блокируют открытие
+		List<Dependencies> deps = dependencyRepository.findByModuleId(moduleId);
+
+		// если зависимостей нет — открываем
+		if (deps.isEmpty()) {
+			module.setCan_be_open(true);
+			moduleRepository.save(module);
+			return;
 		}
+
+		// проверяем для каждой зависимости наличие прогресса и его порог
+		for (Dependencies d : deps) {
+			Long blockedModuleId = d.getBlock_module().getId();
+			ProgressModule pm = progressModuleRepository
+					.findByModuleIdAndTakenCoursesId(blockedModuleId, takenCourseId)
+					.orElseThrow(() -> new RuntimeException(
+							"Dependency not satisfied: module " + blockedModuleId + " not started for takenCourse "
+									+ takenCourseId));
+
+			// критерий завершения — порог; здесь считаем 1.0 (100%) завершением
+			if (pm.getProgress() < 1.0f) {
+				throw new RuntimeException("Dependency not satisfied: module " + blockedModuleId + " progress < 100%");
+			}
+		}
+
+		module.setCan_be_open(true);
+		moduleRepository.save(module);
 	}
 
 	public Module getModule(Long moduleId) {
