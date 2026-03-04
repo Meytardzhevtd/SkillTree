@@ -36,15 +36,6 @@ public class ModuleService {
 		this.progressModuleRepository = progressModuleRepository;
 	}
 
-	private Module findModuleOrThrow(Long moduleId) {
-		Optional<Module> oModule = moduleRepository.findById(moduleId);
-		if (oModule.isPresent()) {
-			return oModule.get();
-		} else {
-			throw new ModuleNotFoundException(moduleId);
-		}
-	}
-
 	@Transactional
 	public Module create(CreateModuleDto createModuleDto) {
 		Optional<Courses> oCourse = courseRepository.findById(createModuleDto.getCourseId());
@@ -59,7 +50,8 @@ public class ModuleService {
 
 	@Transactional
 	public void tryOpenModuleForTakenCourse(Long moduleId, Long takenCourseId) {
-		Module module = findModuleOrThrow(moduleId);
+		Module module = moduleRepository.findById(moduleId)
+				.orElseThrow(() -> new ModuleNotFoundException(moduleId));
 		if (Boolean.TRUE.equals(module.getCan_be_open()))
 			return;
 
@@ -93,6 +85,7 @@ public class ModuleService {
 	}
 
 	public Module getModule(Long moduleId) {
-		return findModuleOrThrow(moduleId);
+		return moduleRepository.findById(moduleId)
+				.orElseThrow(() -> new ModuleNotFoundException(moduleId));
 	}
 }
