@@ -78,13 +78,13 @@ public class ModuleService {
 			Long blockedModuleId = d.getBlock_module().getId();
 			ProgressModule pm = progressModuleRepository
 					.findByModuleIdAndTakenCoursesId(blockedModuleId, takenCourseId)
-					.orElseThrow(() -> new RuntimeException(
-							"Dependency not satisfied: module " + blockedModuleId + " not started for takenCourse "
-									+ takenCourseId));
+					.orElseThrow(() -> new RuntimeException("Dependency not satisfied: module "
+							+ blockedModuleId + " not started for takenCourse " + takenCourseId));
 
 			// критерий завершения — порог; здесь считаем 1.0 (100%) завершением
 			if (pm.getProgress() < 1.0f) {
-				throw new RuntimeException("Dependency not satisfied: module " + blockedModuleId + " progress < 100%");
+				throw new RuntimeException(
+						"Dependency not satisfied: module " + blockedModuleId + " progress < 100%");
 			}
 		}
 

@@ -48,7 +48,8 @@ public class TaskService {
 	}
 
 	public TaskResponse get(Long taskId) {
-		Task task = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException(taskId));
+		Task task = taskRepository.findById(taskId)
+				.orElseThrow(() -> new TaskNotFoundException(taskId));
 		return TaskResponse.of(task);
 	}
 
@@ -69,8 +70,7 @@ public class TaskService {
 
 	@Transactional
 	public void delete(Long id) {
-		Task task = taskRepository.findById(id)
-				.orElseThrow(() -> new TaskNotFoundException(id));
+		Task task = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
 
 		taskRepository.delete(task);
 	}
@@ -79,8 +79,7 @@ public class TaskService {
 		Module module = moduleRepository.findById(moduleId)
 				.orElseThrow(() -> new ModuleNotFoundException(moduleId));
 
-		return taskRepository.findByModule(module).stream()
-				.map((task) -> TaskResponse.of(task))
+		return taskRepository.findByModule(module).stream().map((task) -> TaskResponse.of(task))
 				.sorted((p1, p2) -> Long.compare(p1.getId(), p2.getId()))
 				.collect(Collectors.toList());
 	}

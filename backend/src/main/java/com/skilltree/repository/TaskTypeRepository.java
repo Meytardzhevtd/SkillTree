@@ -11,7 +11,8 @@ public interface TaskTypeRepository extends JpaRepository<TaskTypes, Long> {
 	/**
 	 * Найти тип задания по имени (без учёта регистра).
 	 *
-	 * @param name имя типа
+	 * @param name
+	 *            имя типа
 	 * @return Optional с найденной сущностью
 	 */
 	Optional<TaskTypes> findByNameIgnoreCase(String name);

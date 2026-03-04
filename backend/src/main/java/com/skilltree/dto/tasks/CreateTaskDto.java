@@ -15,30 +15,32 @@ import java.util.Map;
 @AllArgsConstructor
 public class CreateTaskDto {
 
-    @NotNull(message = "taskTypeId is required")
-    private Long taskTypeId;
+	@NotNull(message = "taskTypeId is required")
+	private Long taskTypeId;
 
-    @NotNull(message = "moduleId is required")
-    private Long moduleId;
+	@NotNull(message = "moduleId is required")
+	private Long moduleId;
 
-    @NotNull(message = "content is required")
-    @Size(min = 1, message = "content must not be empty")
-    private Map<String, Object> content;
+	@NotNull(message = "content is required")
+	@Size(min = 1, message = "content must not be empty")
+	private Map<String, Object> content;
 
-    /**
-     * Построить сущность `Task` на основе загруженных сущностей.
-     * DTO не обращается к репозиториям; перед вызовом этого метода
-     * сервис должен загрузить `TaskTypes` и `Module` по id.
-     *
-     * @param type   загруженный TaskTypes
-     * @param module загруженный Module
-     * @return новая сущность Task
-     */
-    public Task toEntity(TaskTypes type, Module module) {
-        Task t = new Task();
-        t.setTask_type(type);
-        t.setModule(module);
-        t.setContent(this.content);
-        return t;
-    }
+	/**
+	 * Построить сущность `Task` на основе загруженных сущностей. DTO не обращается
+	 * к репозиториям; перед вызовом этого метода сервис должен загрузить
+	 * `TaskTypes` и `Module` по id.
+	 *
+	 * @param type
+	 *            загруженный TaskTypes
+	 * @param module
+	 *            загруженный Module
+	 * @return новая сущность Task
+	 */
+	public Task toEntity(TaskTypes type, Module module) {
+		Task t = new Task();
+		t.setTask_type(type);
+		t.setModule(module);
+		t.setContent(this.content);
+		return t;
+	}
 }
