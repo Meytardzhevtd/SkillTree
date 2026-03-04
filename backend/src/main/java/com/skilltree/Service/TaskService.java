@@ -3,6 +3,8 @@ package com.skilltree.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -77,6 +79,19 @@ public class TaskService {
 
 	@Transactional
 	public void delete(Long id) {
-		
+		Task task = getTaskOrThrow(id);
+		taskRepository.delete(task);
+	}
+
+	public List<TaskResponse> getAllTasksByModule(Long moduleId) {
+		Optional<Module> oModule = moduleRepository.findById(moduleId);
+		if (oModule.isPresent() == false) {
+			throw new RuntimeException("TODO");
+		}
+		return taskRepository.findByModule(oModule.get()).stream()
+				.map((task) -> TaskResponse.of(task))
+				.sorted((p1, p2) -> Long.compare(p1.getId(), p2.getId()))
+				.collect(Collectors.toList());
+
 	}
 }
