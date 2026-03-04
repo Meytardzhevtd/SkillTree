@@ -11,13 +11,13 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateTaskDto {
-    @NotNull
-    private Long id;
+	@NotNull
+	private Long id;
 
-    @NotNull
-    private Long taskTypeId;
+	@NotNull
+	private Long taskTypeId;
 
-    @NotNull
-    @Size(min = 1)
-    private Map<String, Object> content;
+	@NotNull
+	@Size(min = 1)
+	private Map<String, Object> content;
 }
