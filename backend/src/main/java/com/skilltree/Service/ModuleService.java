@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.skilltree.dto.CreateModuleDto;
+import com.skilltree.exception.CourseNotFoundException;
 import com.skilltree.exception.ModuleNotFoundException;
 import com.skilltree.model.Courses;
 import com.skilltree.model.Dependencies;
@@ -38,14 +39,10 @@ public class ModuleService {
 
 	@Transactional
 	public Module create(CreateModuleDto createModuleDto) {
-		Optional<Courses> oCourse = courseRepository.findById(createModuleDto.getCourseId());
-		if (oCourse.isPresent() == false) {
-			throw new RuntimeException(
-					"Course with id = " + createModuleDto.getCourseId() + " not found");
-		}
-		Module saved = moduleRepository
-				.save(new Module(null, oCourse.get(), createModuleDto.getName(), false));
-		return saved;
+		Courses course = courseRepository.findById(createModuleDto.getCourseId())
+				.orElseThrow(() -> new CourseNotFoundException(createModuleDto.getCourseId()));
+
+		return moduleRepository.save(new Module(null, course, createModuleDto.getName(), false));
 	}
 
 	@Transactional
