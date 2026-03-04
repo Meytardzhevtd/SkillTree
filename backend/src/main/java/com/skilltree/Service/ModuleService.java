@@ -10,7 +10,9 @@ import com.skilltree.dto.CreateModuleDto;
 import com.skilltree.exception.ModuleNotFoundException;
 import com.skilltree.model.Courses;
 import com.skilltree.repository.CourseRepository;
+import com.skilltree.repository.DependencyRepository;
 import com.skilltree.repository.ModuleRepository;
+import com.skilltree.repository.ProgressModuleRepository;
 import com.skilltree.model.Module;
 
 @Transactional(readOnly = true)
@@ -18,11 +20,17 @@ import com.skilltree.model.Module;
 public class ModuleService {
 	private final ModuleRepository moduleRepository;
 	private final CourseRepository courseRepository;
+	private final DependencyRepository dependencyRepository;
+	private final ProgressModuleRepository progressModuleRepository;
 
 	@Autowired
-	public ModuleService(ModuleRepository moduleRepository, CourseRepository courseRepository) {
+	public ModuleService(ModuleRepository moduleRepository, CourseRepository courseRepository,
+			DependencyRepository dependencyRepository,
+			ProgressModuleRepository progressModuleRepository) {
 		this.moduleRepository = moduleRepository;
 		this.courseRepository = courseRepository;
+		this.dependencyRepository = dependencyRepository;
+		this.progressModuleRepository = progressModuleRepository;
 	}
 
 	private Module findModuleOrThrow(Long moduleId) {
