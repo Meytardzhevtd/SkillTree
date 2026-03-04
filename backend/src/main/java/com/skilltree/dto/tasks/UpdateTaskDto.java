@@ -9,6 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateTaskDto {
+    private Long id;
     private Long taskTypeId;
     private Map<String, Object> content;
 }
