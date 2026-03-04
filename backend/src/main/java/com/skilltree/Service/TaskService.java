@@ -2,23 +2,63 @@ package com.skilltree.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.skilltree.dto.tasks.CreateTaskDto;
+import com.skilltree.dto.tasks.TaskResponse;
+import com.skilltree.model.Module;
 import com.skilltree.model.Task;
+import com.skilltree.model.TaskTypes;
+import com.skilltree.repository.ModuleRepository;
 import com.skilltree.repository.TaskRepository;
+import com.skilltree.repository.TaskTypeRepository;
 
+@Transactional(readOnly = true)
 @Service
 public class TaskService {
 	private final TaskRepository taskRepository;
+	private final TaskTypeRepository taskTypeRepository;
+	private final ModuleRepository moduleRepository;
 
 	@Autowired
-	public TaskService(TaskRepository taskrRepository) {
-		this.taskRepository = taskrRepository;
+	public TaskService(TaskRepository taskRepository, TaskTypeRepository taskTypeRepository,
+			ModuleRepository moduleRepository) {
+		this.taskRepository = taskRepository;
+		this.taskTypeRepository = taskTypeRepository;
+		this.moduleRepository = moduleRepository;
 	}
 
-	List<Task> getTasksByModuleId(Long moduleId) {
-		return new ArrayList<>();
+	@Transactional
+	public TaskResponse create(CreateTaskDto createTaskDto) {
+		Optional<TaskTypes> taskType = taskTypeRepository.findById(createTaskDto.getTaskTypeId());
+		Optional<Module> module = moduleRepository.findById(createTaskDto.getModuleId());
+		if (!taskType.isPresent() || !module.isPresent()) {
+			throw new RuntimeException("TODO: потом сделаю кастомные исключения, пока лень");
+		}
+		Task saved = taskRepository.save(createTaskDto.toEntity(taskType.get(), module.get()));
+		if (saved == null) {
+			throw new RuntimeException("Error");
+		}
+		return new TaskResponse(saved.getId(), saved.getTask_type().getId(), saved.getModule().getId(),
+				saved.getContent());
 	}
+
+	public TaskResponse get(Long taskId) {
+		Optional<Task> oTask = taskRepository.findById(taskId);
+		if (oTask.isPresent()) {
+			Task task = oTask.get();
+			return new TaskResponse(
+					task.getId(),
+					task.getTask_type().getId(),
+					task.getModule().getId(),
+					task.getContent());
+		} else {
+			throw new RuntimeException("Task with id = " + taskId + " not foound");
+		}
+	}
+
 }
