@@ -1,6 +1,7 @@
 package com.skilltree.repository;
 
 import com.skilltree.model.Task;
+import com.skilltree.model.Module;
 
 import java.util.List;
 
