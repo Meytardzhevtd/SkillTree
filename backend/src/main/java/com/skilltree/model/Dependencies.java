@@ -6,7 +6,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "Dependences",
+@Table(name = "Dependencies",
 		uniqueConstraints = @UniqueConstraint(name = "uq_dependence",
 				columnNames = {"id_module", "id_block_module"}))
 @Data
