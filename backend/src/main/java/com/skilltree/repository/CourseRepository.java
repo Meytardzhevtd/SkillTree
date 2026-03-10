@@ -10,6 +10,6 @@ import java.util.List;
 
 @Repository
 public interface CourseRepository extends JpaRepository<Courses, Long> {
-	@Query("SELECT c FROM Courses c JOIN c.roles r WHERE r.user.id = :userId AND r.courseRole = :role")
+	@Query("SELECT c FROM Courses c JOIN c.roles r WHERE r.user.id = :userId AND r.course_role = :role")
 	List<Courses> findByUserIdAndRole(@Param("userId") Long userId, @Param("role") String role);
 }
