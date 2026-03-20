@@ -20,44 +20,47 @@ public class CourseManagerController {
 		this.courseService = courseService;
 	}
 
-//	@GetMapping("/Courses")
-//	public ResponseEntity<List<CourseDto>> getCoursesByUserId(@RequestParam("userId") Long userId) {
-//		List<Courses> entities = courseService.getCoursesByUserId(userId);
-//		List<CourseDto> courses = entities.stream().map(CourseDto::fromEntity)
-//				.collect(Collectors.toList());
-//		return ResponseEntity.ok(courses);
-//	}
+	// @GetMapping("/Courses")
+	// public ResponseEntity<List<CourseDto>>
+	// getCoursesByUserId(@RequestParam("userId") Long userId) {
+	// List<Courses> entities = courseService.getCoursesByUserId(userId);
+	// List<CourseDto> courses = entities.stream().map(CourseDto::fromEntity)
+	// .collect(Collectors.toList());
+	// return ResponseEntity.ok(courses);
+	// }
 
-//	@PostMapping("/create-course")
-//	public ResponseEntity<?> createCourse(@RequestBody CreateCourseRequest request) {
-//		courseService.createCourse(request.getUserId(), request.getName(),
-//				request.getDescription());
-//		return ResponseEntity.ok("Курс " + request.getName() + " создан");
-//	}
+	// @PostMapping("/create-course")
+	// public ResponseEntity<?> createCourse(@RequestBody CreateCourseRequest
+	// request) {
+	// courseService.createCourse(request.getUserId(), request.getName(),
+	// request.getDescription());
+	// return ResponseEntity.ok("Курс " + request.getName() + " создан");
+	// }
 
-//	@PostMapping("/create-full-course")
-//	public ResponseEntity<?> createFullCourse(@RequestBody CreateCourseRequest request) {
-//		courseService.createFullCourse(request);
-//		return ResponseEntity.ok("Полный курс успешно создан");
-//	}
+	// @PostMapping("/create-full-course")
+	// public ResponseEntity<?> createFullCourse(@RequestBody CreateCourseRequest
+	// request) {
+	// courseService.createFullCourse(request);
+	// return ResponseEntity.ok("Полный курс успешно создан");
+	// }
 
-//	@PostMapping("/add-module")
-//	public ResponseEntity<?> addModule(@RequestBody CreateModuleRequest request,
-//			@RequestParam Long courseId) {
-//		Module module = courseService.addModuleToCourse(courseId, request.getName());
-//		return ResponseEntity.ok("Модуль " + module.getName() + " добавлен");
-//	}
+	// @PostMapping("/add-module")
+	// public ResponseEntity<?> addModule(@RequestBody CreateModuleRequest request,
+	// @RequestParam Long courseId) {
+	// Module module = courseService.addModuleToCourse(courseId, request.getName());
+	// return ResponseEntity.ok("Модуль " + module.getName() + " добавлен");
+	// }
 
-//	@PostMapping("/add-task")
-//	public ResponseEntity<?> addTask(@RequestBody CreateTaskRequest request,
-//			@RequestParam Long moduleId) {
-//		Task task = courseService.addTaskToModule(moduleId, request.getContent());
-//		return ResponseEntity.ok("Задача добавлена в модуль");
-//	}
+	// @PostMapping("/add-task")
+	// public ResponseEntity<?> addTask(@RequestBody CreateTaskRequest request,
+	// @RequestParam Long moduleId) {
+	// Task task = courseService.addTaskToModule(moduleId, request.getContent());
+	// return ResponseEntity.ok("Задача добавлена в модуль");
+	// }
 
-//	@GetMapping("/course/{id}")
-//	public ResponseEntity<CourseDto> getCourse(@PathVariable Long id) {
-//		Courses course = courseService.getCourseById(id);
-//		return ResponseEntity.ok(CourseDto.fromEntity(course));
-//	}
+	// @GetMapping("/course/{id}")
+	// public ResponseEntity<CourseDto> getCourse(@PathVariable Long id) {
+	// Courses course = courseService.getCourseById(id);
+	// return ResponseEntity.ok(CourseDto.fromEntity(course));
+	// }
 }

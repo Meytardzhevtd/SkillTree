@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @Getter
 public class CreateModuleRequest {
-    private Long courseId;
-    private String name;
-    private Boolean can_be_open;
+	private Long courseId;
+	private String name;
+	private Boolean can_be_open;
 }
