@@ -38,7 +38,7 @@ public class ModuleService {
 	}
 
 	@Transactional
-	public ModuleDto createModule(CreateModuleRequest request){
+	public ModuleDto createModule(CreateModuleRequest request) {
 		Module module = new Module();
 		module.setId(request.getCourseId());
 		module.setName(request.getName());

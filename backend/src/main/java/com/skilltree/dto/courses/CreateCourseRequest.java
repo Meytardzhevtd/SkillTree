@@ -6,6 +6,6 @@ import lombok.Setter;
 @Setter
 @Getter
 public class CreateCourseRequest {
-    private String name;
-    private String description;
+	private String name;
+	private String description;
 }

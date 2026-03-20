@@ -14,16 +14,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/module")
 public class ModuleController {
-    private final ModuleService moduleService;
+	private final ModuleService moduleService;
 
-    public ModuleController(ModuleService moduleService) {
-        this.moduleService = moduleService;
-    }
+	public ModuleController(ModuleService moduleService) {
+		this.moduleService = moduleService;
+	}
 
-
-
-    @PostMapping
-    public ModuleDto create(@RequestBody CreateModuleRequest request) {
-        return moduleService.createModule(request);
-    }
+	@PostMapping
+	public ModuleDto create(@RequestBody CreateModuleRequest request) {
+		return moduleService.createModule(request);
+	}
 }

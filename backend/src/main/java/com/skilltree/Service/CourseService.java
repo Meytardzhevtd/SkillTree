@@ -35,13 +35,13 @@ public class CourseService {
 		Courses course = new Courses();
 		course.setName(request.getName());
 		course.setDescription(request.getDescription());
-		return new CourseDto (courseRepository.save(course));
+		return new CourseDto(courseRepository.save(course));
 	}
 
 	@Transactional
 	public CourseDto getCourseDtoById(Long id) {
 		Optional<Courses> course = courseRepository.findById(id);
-		if(course.isEmpty()){
+		if (course.isEmpty()) {
 			throw new RuntimeException("Course not found");
 		}
 		return new CourseDto(course.get());
