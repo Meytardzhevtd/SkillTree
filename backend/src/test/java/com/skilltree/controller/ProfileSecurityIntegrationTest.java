@@ -4,7 +4,7 @@ import com.skilltree.Service.UserService;
 import com.skilltree.Service.JwtService;
 import com.skilltree.config.JwtAuthenticationFilter;
 import com.skilltree.config.SecurityConfig;
-import com.skilltree.model.User;
+import com.skilltree.model.Users;
 import com.skilltree.model.Role;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +44,7 @@ class ProfileSecurityIntegrationTest {
 		String email = "student1@example.com";
 		String token = "valid.jwt.token";
 
-		User user = new User(1L, "student_1", email, "hashed");
+		Users user = new Users(1L, "student_1", email, "hashed");
 		user.setRole(Role.BASE_USER);
 
 		when(jwtService.extractEmail(token)).thenReturn(email);

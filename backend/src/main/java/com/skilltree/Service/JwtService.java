@@ -24,12 +24,16 @@ public class JwtService {
 	@Value("${jwt.expiration-ms}")
 	private long jwtExpirationMs;
 
-	public String generateToken(String email) {
+	public String generateToken(String email, Long userId) {
 		Instant now = Instant.now();
 
-		return Jwts.builder().subject(email).issuedAt(Date.from(now))
+		return Jwts.builder().subject(email).claim("userId", userId).issuedAt(Date.from(now))
 				.expiration(Date.from(now.plusMillis(jwtExpirationMs))).signWith(getSigningKey())
 				.compact();
+	}
+
+	public Long extractUserId(String token) {
+		return extractAllClaims(token).get("userId", Long.class);
 	}
 
 	public String extractEmail(String token) {
@@ -39,6 +43,15 @@ public class JwtService {
 	public boolean isTokenValid(String token, String email) {
 		try {
 			return email.equals(extractEmail(token)) && !isTokenExpired(token);
+		} catch (JwtException | IllegalArgumentException ex) {
+			return false;
+		}
+	}
+
+	public boolean isTokenValidWithUserId(String token, String email, Long userId) {
+		try {
+			return email.equals(extractEmail(token)) && userId.equals(extractUserId(token))
+					&& !isTokenExpired(token);
 		} catch (JwtException | IllegalArgumentException ex) {
 			return false;
 		}
