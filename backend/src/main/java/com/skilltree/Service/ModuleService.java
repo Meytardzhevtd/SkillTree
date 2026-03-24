@@ -91,10 +91,18 @@ public class ModuleService {
 			return false;
 		}
 		Long userId = currentUserId.get();
-		return answers.stream().anyMatch(answer -> answer.getProgress_module() != null
-				&& answer.getProgress_module().getTaken_courses() != null
-				&& answer.getProgress_module().getTaken_courses().getUser() != null
-				&& userId.equals(answer.getProgress_module().getTaken_courses().getUser().getId()));
+		return answers.stream().anyMatch(answer -> isAnswerOfUser(answer, userId));
+	}
+
+	private boolean isAnswerOfUser(UserAnswers answer, Long userId) {
+		if (answer.getProgress_module() == null) {
+			return false;
+		}
+		if (answer.getProgress_module().getTaken_courses() == null) {
+			return false;
+		}
+		Users answerUser = answer.getProgress_module().getTaken_courses().getUser();
+		return answerUser != null && userId.equals(answerUser.getId());
 	}
 
 	public List<ModuleSimpleDto> getListModulesByCourseId(Long courseId) {
