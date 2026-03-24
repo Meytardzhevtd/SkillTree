@@ -10,10 +10,12 @@ import com.skilltree.exception.ModuleNotFoundException;
 import com.skilltree.exception.UserNotFoundException;
 import com.skilltree.model.Courses;
 import com.skilltree.model.Module;
+import com.skilltree.model.UserAnswers;
 import com.skilltree.model.Users;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -38,18 +40,14 @@ public class ModuleService {
 	private final ProgressModuleRepository progressModuleRepository;
 	private final UserRepository userRepository;
 
-	private final JwtService jwtService;
-
 	@Autowired
 	public ModuleService(ModuleRepository moduleRepository, CourseRepository courseRepository,
 			DependencyRepository dependencyRepository,
-			ProgressModuleRepository progressModuleRepository, JwtService jwtService,
-			UserRepository userRepository) {
+			ProgressModuleRepository progressModuleRepository, UserRepository userRepository) {
 		this.moduleRepository = moduleRepository;
 		this.courseRepository = courseRepository;
 		this.dependencyRepository = dependencyRepository;
 		this.progressModuleRepository = progressModuleRepository;
-		this.jwtService = jwtService;
 		this.userRepository = userRepository;
 	}
 
@@ -67,15 +65,44 @@ public class ModuleService {
 		Module module = moduleRepository.findById(moduleId)
 				.orElseThrow(() -> new ModuleNotFoundException(moduleId));
 		if (module.getCan_be_open()) {
-			// TODO: надо сделать нормальную проверку решена ли таска или нет (сейчас всегда
-			// false)
+			Optional<Long> currentUserId = getCurrentUserId();
 			List<TaskSimpleDto> tasks = module.getTasks().stream()
-					.map(task -> new TaskSimpleDto(task.getId(), false)).toList();
+					.map(task -> new TaskSimpleDto(task.getId(),
+							isTaskCompletedByUser(task.getUser_answers(), currentUserId)))
+					.toList();
 
 			return new ModuleResponse(moduleId, module.getName(), tasks);
 		} else {
 			throw new ModuleIsNotAvailable(moduleId);
 		}
+	}
+
+	private Optional<Long> getCurrentUserId() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth == null || !auth.isAuthenticated()) {
+			return Optional.empty();
+		}
+
+		return userRepository.findByEmail(auth.getName()).map(Users::getId);
+	}
+
+	private boolean isTaskCompletedByUser(List<UserAnswers> answers, Optional<Long> currentUserId) {
+		if (currentUserId.isEmpty()) {
+			return false;
+		}
+		Long userId = currentUserId.get();
+		return answers.stream().anyMatch(answer -> isAnswerOfUser(answer, userId));
+	}
+
+	private boolean isAnswerOfUser(UserAnswers answer, Long userId) {
+		if (answer.getProgress_module() == null) {
+			return false;
+		}
+		if (answer.getProgress_module().getTaken_courses() == null) {
+			return false;
+		}
+		Users answerUser = answer.getProgress_module().getTaken_courses().getUser();
+		return answerUser != null && userId.equals(answerUser.getId());
 	}
 
 	public List<ModuleSimpleDto> getListModulesByCourseId(Long courseId) {
