@@ -1,12 +1,11 @@
 package com.skilltree.controller;
 
-import com.skilltree.Service.CourseService;
 import com.skilltree.Service.ModuleService;
-import com.skilltree.dto.module.ModuleDto;
 import com.skilltree.dto.module.ModuleResponse;
-import com.skilltree.dto.courses.CourseDto;
-import com.skilltree.dto.courses.CreateCourseRequest;
+import com.skilltree.dto.module.ModuleSimpleDto;
 import com.skilltree.dto.module.CreateModuleRequest;
+
+import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,5 +32,9 @@ public class ModuleController {
 	public ModuleResponse getModule(@PathVariable Long id) {
 		return moduleService.getModule(id);
 	}
-	
+
+	@GetMapping("/courses/{id}")
+	public List<ModuleSimpleDto> getListModulesByCourseId(Long courseId) {
+		return moduleService.getListModulesByCourseId(courseId);
+	}
 }
