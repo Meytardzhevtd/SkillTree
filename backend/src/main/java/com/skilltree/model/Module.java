@@ -43,7 +43,8 @@ public class Module {
 	@OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<ProgressModule> progressModules = new ArrayList<>();
 
-	public Module(Courses course, String name, Boolean can_be_open) {
+	public Module(Long id, Courses course, String name, Boolean can_be_open) {
+		this.id = id;
 		this.course = course;
 		this.name = name;
 		this.can_be_open = can_be_open;
