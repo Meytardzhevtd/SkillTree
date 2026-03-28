@@ -16,6 +16,9 @@ public class TaskTypes {
 
 	@Column(name = "name", nullable = false)
 	private String name;
+	/**
+	 * По имени надо наверное обращатся: ONE_POSSIBLE_ANSWER -- один вариант ответа
+	 */
 
 	@OneToMany(mappedBy = "task_type", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Task> tasks = new ArrayList<>();
