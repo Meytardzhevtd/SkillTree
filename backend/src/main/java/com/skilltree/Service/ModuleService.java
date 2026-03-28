@@ -106,9 +106,7 @@ public class ModuleService {
 	}
 
 	public List<ModuleSimpleDto> getListModulesByCourseId(Long courseId) {
-		/**
-		 * Это метод как будто нафиг нам не нужен и я зря сидел и писал его долго :(
-		 */
+
 		Courses course = courseRepository.findById(courseId)
 				.orElseThrow(() -> new CourseNotFoundException(courseId));
 

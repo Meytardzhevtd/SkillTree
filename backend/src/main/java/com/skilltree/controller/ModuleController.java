@@ -10,6 +10,7 @@ import com.skilltree.dto.module.CreateModuleRequest;
 
 import java.util.List;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,8 +41,17 @@ public class ModuleController {
 		return moduleService.getModule(id);
 	}
 
+	@Operation(summary = "Получить писок модулей",
+			description = "Возвращается список модуелей по id курса."
+					+ "По итогу видим список и доступность модуля")
 	@GetMapping("/courses/{id}")
 	public List<ModuleSimpleDto> getListModulesByCourseId(@PathVariable Long courseId) {
 		return moduleService.getListModulesByCourseId(courseId);
 	}
+
+	@DeleteMapping("/{id}")
+	public void delete(@PathVariable Long id) {
+		moduleService.deleteModule(id);
+	}
+
 }
