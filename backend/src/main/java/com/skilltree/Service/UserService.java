@@ -4,20 +4,31 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.skilltree.model.TakenCourses;
 import com.skilltree.model.Users;
+import com.skilltree.repository.TakenCoursesRepository;
 import com.skilltree.repository.UserRepository;
+
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.skilltree.dto.*;
+import com.skilltree.dto.courses.CourseSimpleDto;
+import com.skilltree.exception.UserNotFoundException;
 
 @Service
 public class UserService {
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 
-	public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+	private final TakenCoursesRepository takenCoursesRepository;
+
+	public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+			TakenCoursesRepository takenCoursesRepository) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
+		this.takenCoursesRepository = takenCoursesRepository;
 	}
 
 	@Transactional
@@ -59,5 +70,16 @@ public class UserService {
 		Users user = findByEmail(email);
 		user.setUsername(username.trim());
 		return userRepository.save(user);
+	}
+
+	@Transactional(readOnly = true)
+	public List<CourseSimpleDto> getCoursesForUser(Long userId) {
+		Users user = userRepository.findById(userId)
+				.orElseThrow(() -> new UserNotFoundException(userId));
+		return takenCoursesRepository.findByUser(user).stream()
+				.map(takenCourse -> new CourseSimpleDto(takenCourse.getCourse().getId(),
+						takenCourse.getCourse().getName(),
+						takenCourse.getCourse().getDescription()))
+				.collect(Collectors.toList());
 	}
 }
