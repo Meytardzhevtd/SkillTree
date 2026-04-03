@@ -6,5 +6,5 @@ package com.skilltree.dto.content;
  */
 
 public interface TaskContent {
-    String getQuestion();
+	String getQuestion();
 }
