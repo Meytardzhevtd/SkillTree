@@ -45,9 +45,6 @@ public class SecurityConfig {
 						.requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
 						.permitAll()
 
-						.requestMatchers("/api/course-manager/create-course").permitAll()
-						.requestMatchers("/api/course-manager/create-full-course").permitAll()
-
 						.requestMatchers("/api/**").authenticated().anyRequest().permitAll());
 
 		http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
