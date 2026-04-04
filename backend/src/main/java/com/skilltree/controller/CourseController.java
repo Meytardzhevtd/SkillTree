@@ -26,9 +26,9 @@ public class CourseController {
 		return courseService.getCourseDtoById(id);
 	}
 
-	@GetMapping("/user/{userId}/owner")
-	public List<CourseDto> getOwnedCourses(@PathVariable Long userId) {
-		return courseService.getCoursesByUserAndRole(userId, "OWNER");
-	}
+	// @GetMapping("/user/{userId}/owner")
+	// public List<CourseDto> getOwnedCourses(@PathVariable Long userId) {
+	// return courseService.getCoursesByUserAndRole(userId, "OWNER");
+	// }
 
 }
