@@ -12,7 +12,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OneAnswerTaskContent implements TaskContent {
-    private String question;
-    private List<String> options; // варианты ответа
-    private int indexCorrectAnswer;
+	private String question;
+	private List<String> options; // варианты ответа
+	private int indexCorrectAnswer;
 }
