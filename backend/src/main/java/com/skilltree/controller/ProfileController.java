@@ -3,7 +3,7 @@ package com.skilltree.controller;
 import com.skilltree.Service.UserService;
 import com.skilltree.dto.ProfileResponse;
 import com.skilltree.dto.UpdateProfileRequest;
-import com.skilltree.model.User;
+import com.skilltree.model.Users;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -30,7 +30,7 @@ public class ProfileController {
 			}
 
 			String email = principal.getName();
-			User user = userService.findByEmail(email);
+			Users user = userService.findByEmail(email);
 			ProfileResponse response = new ProfileResponse(user.getId(), user.getUsername(),
 					user.getEmail(), user.getRole());
 			return ResponseEntity.ok(response);
@@ -48,7 +48,7 @@ public class ProfileController {
 			}
 
 			String email = principal.getName();
-			User updatedUser = userService.updateUsernameByEmail(email, request.getUsername());
+			Users updatedUser = userService.updateUsernameByEmail(email, request.getUsername());
 			ProfileResponse response = new ProfileResponse(updatedUser.getId(),
 					updatedUser.getUsername(), updatedUser.getEmail(), updatedUser.getRole());
 			return ResponseEntity.ok(response);

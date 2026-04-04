@@ -2,6 +2,7 @@ import axios from 'axios';
 import { getToken } from './authStorage';
 
 const api = axios.create({
+  // TODO: такой ссылки больше нет (контроллер удален)
   baseURL: '/api/course-manager',
 });
 

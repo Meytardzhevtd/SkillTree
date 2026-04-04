@@ -1,21 +1,26 @@
 package com.skilltree.Service;
 
-import com.skilltree.model.Course;
-import com.skilltree.model.Module;
-import com.skilltree.model.Task;
-import com.skilltree.model.User;
-import com.skilltree.dto.CreateCourseRequest;
-import com.skilltree.dto.CreateModuleRequest;
-import com.skilltree.dto.CreateTaskRequest;
+import com.skilltree.dto.courses.CourseDto;
+import com.skilltree.dto.module.ModuleDto;
+import com.skilltree.exception.UserNotFoundException;
+import com.skilltree.model.Courses;
+import com.skilltree.model.Roles;
+import com.skilltree.model.Users;
+import com.skilltree.dto.courses.CreateCourseRequest;
 import com.skilltree.repository.CourseRepository;
 import com.skilltree.repository.ModuleRepository;
+import com.skilltree.repository.RolesRepository;
 import com.skilltree.repository.TaskRepository;
 import com.skilltree.repository.UserRepository;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import jakarta.transaction.Transactional;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,91 +30,67 @@ public class CourseService {
 	private final ModuleRepository moduleRepository;
 	private final TaskRepository taskRepository;
 	private final UserRepository userRepository;
+	private final RolesRepository rolesRepository;
 
 	public CourseService(CourseRepository courseRepository, ModuleRepository moduleRepository,
-			TaskRepository taskRepository, UserRepository userRepository) {
+			TaskRepository taskRepository, UserRepository userRepository,
+			RolesRepository rolesRepository) {
 		this.courseRepository = courseRepository;
 		this.moduleRepository = moduleRepository;
 		this.taskRepository = taskRepository;
 		this.userRepository = userRepository;
+		this.rolesRepository = rolesRepository;
 	}
 
-	public List<Course> getCoursesByUserId(Long userId) {
-		// использует метод findByUserId в CourseRepository
-		return courseRepository.findByUserId(userId);
-	}
+	public CourseDto createCourse(CreateCourseRequest request) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-	public Course getCourseById(Long id) {
-		return courseRepository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Course not found"));
-	}
+		if (auth == null || !auth.isAuthenticated()) {
+			throw new RuntimeException("User not authenticated");
+		}
 
-	public Course createCourse(Long userId, String name, String description) {
-		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new RuntimeException("User not found"));
+		String email = auth.getName();
 
-		Course course = new Course();
-		course.setUser(user);
-		course.setName(name);
-		course.setDescription(description);
-
-		return courseRepository.save(course);
-	}
-
-	@Transactional
-	public Course createFullCourse(CreateCourseRequest request) {
-		User user = userRepository.findById(request.getUserId())
-				.orElseThrow(() -> new RuntimeException("User not found"));
-
-		Course course = new Course();
-		course.setUser(user);
+		Courses course = new Courses();
 		course.setName(request.getName());
 		course.setDescription(request.getDescription());
 
-		List<Module> modules = request.getModules() == null
-				? List.of()
-				: request.getModules().stream().map(mr -> {
-					Module module = new Module();
-					module.setName(mr.getName());
-					module.setCourse(course);
+		Courses savedCourse = courseRepository.save(course);
 
-					List<Task> tasks = mr.getTasks() == null
-							? List.of()
-							: mr.getTasks().stream().map(tr -> {
-								Task task = new Task();
-								task.setContent(tr.getContent());
-								task.setModule(module);
-								return task;
-							}).collect(Collectors.toList());
+		Users user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new UserNotFoundException(1L));
 
-					module.setTasks(tasks);
-					return module;
-				}).collect(Collectors.toList());
+		Roles role = new Roles();
 
-		course.setModules(modules);
+		role.setCourse_role("base_user");
+		role.setCourse(savedCourse);
+		role.setUser(user);
 
-		return courseRepository.save(course);
+		Roles savedRole = rolesRepository.save(role);
+
+		return new CourseDto(savedCourse);
+
 	}
 
-	public Module addModuleToCourse(Long courseId, String name) {
-		Course course = courseRepository.findById(courseId)
-				.orElseThrow(() -> new RuntimeException("Course not found"));
-
-		Module module = new Module();
-		module.setName(name);
-		module.setCourse(course);
-
-		return moduleRepository.save(module);
+	@Transactional
+	public List<CourseDto> getAll() {
+		return courseRepository.findAll().stream().map((course) -> new CourseDto(course)).toList();
 	}
 
-	public Task addTaskToModule(Long moduleId, String content) {
-		Module module = moduleRepository.findById(moduleId)
-				.orElseThrow(() -> new RuntimeException("Module not found"));
-
-		Task task = new Task();
-		task.setContent(content);
-		task.setModule(module);
-
-		return taskRepository.save(task);
+	@Transactional
+	public CourseDto getCourseDtoById(Long id) {
+		Optional<Courses> course = courseRepository.findById(id);
+		if (course.isEmpty()) {
+			throw new RuntimeException("Course not found");
+		}
+		return new CourseDto(course.get());
 	}
+
+	@Transactional
+	public List<CourseDto> getCoursesByUserAndRole(Long userId, String role) {
+		List<Courses> coursesUser = courseRepository.findByUserIdAndRole(userId, role);
+		return coursesUser.stream().map(course -> new CourseDto(course))
+				.collect(Collectors.toList());
+	}
+
 }

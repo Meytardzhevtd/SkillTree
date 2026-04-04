@@ -4,34 +4,45 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.skilltree.model.User;
+import com.skilltree.model.TakenCourses;
+import com.skilltree.model.Users;
+import com.skilltree.repository.TakenCoursesRepository;
 import com.skilltree.repository.UserRepository;
+
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.skilltree.dto.*;
+import com.skilltree.dto.courses.CourseSimpleDto;
+import com.skilltree.exception.UserNotFoundException;
 
 @Service
 public class UserService {
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 
-	public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+	private final TakenCoursesRepository takenCoursesRepository;
+
+	public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+			TakenCoursesRepository takenCoursesRepository) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
+		this.takenCoursesRepository = takenCoursesRepository;
 	}
 
 	@Transactional
-	public User register(RegisterRequest user) {
+	public Users register(RegisterRequest user) {
 		if (userRepository.existsByEmail(user.getEmail())) {
 			throw new RuntimeException("Email already exists");
 		}
-		User newUser = new User(user.getUsername(), user.getEmail(),
+		Users newUser = new Users(user.getUsername(), user.getEmail(),
 				passwordEncoder.encode(user.getPassword()));
 		return userRepository.save(newUser);
 	}
 
 	public boolean login(LoginRequest loginRequest) {
-		Optional<User> user = userRepository.findByEmail(loginRequest.getEmail());
+		Optional<Users> user = userRepository.findByEmail(loginRequest.getEmail());
 		if (user.isPresent()) {
 			return passwordEncoder.matches(loginRequest.getPassword(), user.get().getPassword());
 		} else {
@@ -39,13 +50,13 @@ public class UserService {
 		}
 	}
 
-	public User findByEmail(String email) {
+	public Users findByEmail(String email) {
 		return userRepository.findByEmail(email)
 				.orElseThrow(() -> new RuntimeException("User not found"));
 	}
 
 	@Transactional
-	public User updateUsernameByEmail(String email, String username) {
+	public Users updateUsernameByEmail(String email, String username) {
 		username = username.trim();
 		if (username == null || username.trim().isEmpty()) {
 			throw new RuntimeException("Username cannot be empty");
@@ -56,8 +67,19 @@ public class UserService {
 		if (userRepository.existsByUsername(username)) {
 			throw new RuntimeException("This username is already occupied");
 		}
-		User user = findByEmail(email);
+		Users user = findByEmail(email);
 		user.setUsername(username.trim());
 		return userRepository.save(user);
+	}
+
+	@Transactional(readOnly = true)
+	public List<CourseSimpleDto> getCoursesForUser(Long userId) {
+		Users user = userRepository.findById(userId)
+				.orElseThrow(() -> new UserNotFoundException(userId));
+		return takenCoursesRepository.findByUser(user).stream()
+				.map(takenCourse -> new CourseSimpleDto(takenCourse.getCourse().getId(),
+						takenCourse.getCourse().getName(),
+						takenCourse.getCourse().getDescription()))
+				.collect(Collectors.toList());
 	}
 }

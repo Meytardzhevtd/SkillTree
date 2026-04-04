@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.skilltree.dto.*;
+import com.skilltree.model.Users;
+import com.skilltree.repository.UserRepository;
 import com.skilltree.Service.UserService;
 import com.skilltree.Service.JwtService;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,9 +23,13 @@ public class AuthController {
 	private final JwtService jwtService;
 	private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
-	public AuthController(UserService userService, JwtService jwtService) {
+	private final UserRepository userRepository;
+
+	public AuthController(UserService userService, JwtService jwtService,
+			UserRepository userRepository) {
 		this.userService = userService;
 		this.jwtService = jwtService;
+		this.userRepository = userRepository;
 	}
 
 	@PostMapping("register")
@@ -44,9 +50,12 @@ public class AuthController {
 		log.info("Login attempt: email={}", request.getEmail());
 		boolean success = userService.login(request);
 		if (success) {
-			String token = jwtService.generateToken(request.getEmail());
+			Users user = userRepository.findByEmail(request.getEmail())
+					.orElseThrow(() -> new RuntimeException("TODO: File AuthController"));
 
-			var user = userService.findByEmail(request.getEmail());
+			String token = jwtService.generateToken(request.getEmail(), user.getId());
+
+			// var user = userService.findByEmail(request.getEmail());
 
 			AuthResponse.UserInfo userInfo = new AuthResponse.UserInfo(user.getId(),
 					user.getUsername(), user.getEmail(), user.getRole().name());
