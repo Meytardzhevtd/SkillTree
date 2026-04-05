@@ -42,7 +42,11 @@ export const deleteModule = async (moduleId: number) => {
 };
 
 export const createTask = async (moduleId: number, taskTypeId: number, content: any) => {
-  const res = await api.post('/tasks', { moduleId, taskTypeId, content });
+  const res = await api.post('/tasks', {
+    taskTypeId: taskTypeId,
+    moduleId: moduleId,
+    content: content
+  });
   return res.data;
 };
 
@@ -58,5 +62,10 @@ export const getModulesByCourseId = async (courseId: number) => {
 
 export const getTasksByModuleId = async (moduleId: number) => {
   const res = await api.get(`/tasks?moduleId=${moduleId}`);
+  return res.data;
+};
+
+export const getModuleById = async (moduleId: number) => {
+  const res = await api.get(`/module/${moduleId}`);
   return res.data;
 };
