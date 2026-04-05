@@ -1,6 +1,7 @@
 package com.skilltree.Service;
 
 import com.skilltree.dto.courses.CourseDto;
+import com.skilltree.dto.courses.CourseSimpleDto;
 import com.skilltree.dto.module.ModuleDto;
 import com.skilltree.exception.UserNotFoundException;
 import com.skilltree.model.Courses;
@@ -90,6 +91,16 @@ public class CourseService {
 	public List<CourseDto> getCoursesByUserAndRole(Long userId, String role) {
 		List<Courses> coursesUser = courseRepository.findByUserIdAndRole(userId, role);
 		return coursesUser.stream().map(course -> new CourseDto(course))
+				.collect(Collectors.toList());
+	}
+
+	@Transactional
+	public List<CourseSimpleDto> getCoursesByUserId(Long userId) {
+		Users user = userRepository.findById(userId)
+				.orElseThrow(() -> new UserNotFoundException(userId));
+		return courseRepository.findByUser(user).stream()
+				.map(course -> new CourseSimpleDto(course.getId(), course.getName(),
+						course.getDescription()))
 				.collect(Collectors.toList());
 	}
 
