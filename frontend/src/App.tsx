@@ -8,6 +8,8 @@ import RegisterPage from './pages/RegisterPage'
 import CreateCoursePage from './pages/CreateCoursePage'
 import MyCoursesPage from './pages/MyCoursesPage'
 import CoursePage from './pages/CoursePage'
+import ModulePage from './pages/ModulePage';
+
 
 function App() {
   return (
@@ -23,6 +25,7 @@ function App() {
           <Route path="/create-course" element={<CreateCoursePage />} />
           <Route path="/my-courses" element={<MyCoursesPage />} />
           <Route path="/course/:courseId" element={<CoursePage />} />
+          <Route path="/module/:moduleId" element={<ModulePage />} />
         </Route>
       </Route>
 
