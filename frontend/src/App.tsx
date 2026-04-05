@@ -1,4 +1,3 @@
-// src/App.tsx
 import { Navigate, Route, Routes } from 'react-router-dom'
 import MainLayout from './layouts/MainLayout'
 import PublicLayout from './layouts/PublicLayout'
@@ -8,6 +7,7 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import CreateCoursePage from './pages/CreateCoursePage'
 import MyCoursesPage from './pages/MyCoursesPage'
+import CoursePage from './pages/CoursePage'
 
 function App() {
   return (
@@ -22,6 +22,7 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/create-course" element={<CreateCoursePage />} />
           <Route path="/my-courses" element={<MyCoursesPage />} />
+          <Route path="/course/:courseId" element={<CoursePage />} />
         </Route>
       </Route>
 
