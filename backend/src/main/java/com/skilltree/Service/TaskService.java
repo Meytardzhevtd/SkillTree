@@ -64,6 +64,7 @@ public class TaskService {
 	/**
 	 * Проверяет наличие TaskType в БД, если нет - создаёт.
 	 */
+	// TODO
 	private TaskTypes ensureTaskTypeExists(Long taskTypeId) {
 		Optional<TaskTypes> existing = taskTypeRepository.findById(taskTypeId);
 
