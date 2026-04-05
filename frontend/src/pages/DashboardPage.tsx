@@ -5,8 +5,7 @@ import {
   updateMyProfileUsername,
   type ProfileResponse,
 } from '../services/profileApi'
-import { getCourses } from '../services/courseApi'
-import type { CourseDto } from '../services/types'
+import { getMyCourses, getModulesByCourseId, getTasksByModuleId } from '../services/courseApi'
 
 function DashboardPage() {
   const [profile, setProfile] = useState<ProfileResponse | null>(null)
@@ -15,9 +14,11 @@ function DashboardPage() {
   const [usernameDraft, setUsernameDraft] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
-  const [courses, setCourses] = useState<CourseDto[]>([])
+  const [courses, setCourses] = useState<any[]>([])
   const [coursesLoading, setCoursesLoading] = useState(true)
   const [expandedCourseId, setExpandedCourseId] = useState<number | null>(null)
+  const [modulesCache, setModulesCache] = useState<Record<number, any[]>>({})
+  const [tasksCache, setTasksCache] = useState<Record<number, any[]>>({})
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -36,10 +37,9 @@ function DashboardPage() {
   }, [])
 
   useEffect(() => {
-    if (!profile) return
     const loadCourses = async () => {
       try {
-        const data = await getCourses(profile.id)
+        const data = await getMyCourses()
         setCourses(data)
       } catch (err) {
         console.error(err)
@@ -48,7 +48,7 @@ function DashboardPage() {
       }
     }
     void loadCourses()
-  }, [profile])
+  }, [])
 
   const handleSaveUsername = async () => {
     setSaveMessage('')
@@ -69,8 +69,29 @@ function DashboardPage() {
     }
   }
 
-  const toggleCourse = (id: number) => {
-    setExpandedCourseId(prev => (prev === id ? null : id))
+  const toggleCourse = async (courseId: number) => {
+    if (expandedCourseId === courseId) {
+      setExpandedCourseId(null)
+      return
+    }
+
+    setExpandedCourseId(courseId)
+
+    if (!modulesCache[courseId]) {
+      try {
+        const modules = await getModulesByCourseId(courseId)
+        setModulesCache(prev => ({ ...prev, [courseId]: modules }))
+
+        for (const module of modules) {
+          if (!tasksCache[module.moduleId]) {
+            const tasks = await getTasksByModuleId(module.moduleId)
+            setTasksCache(prev => ({ ...prev, [module.moduleId]: tasks }))
+          }
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
   }
 
   return (
@@ -120,30 +141,36 @@ function DashboardPage() {
           {!coursesLoading && courses.length === 0 && <p>Курсы отсутствуют</p>}
           {!coursesLoading && courses.length > 0 && (
             <ul style={{ listStyle: 'none', padding: 0 }}>
-              {courses.map(course => (
-                <li key={course.id} style={{ border: '1px solid #ccc', borderRadius: '6px', marginBottom: '8px', padding: '12px' }}>
+              {courses.map((course: any) => (
+                <li key={course.courseId} style={{ border: '1px solid #ccc', borderRadius: '6px', marginBottom: '8px', padding: '12px' }}>
                   <div
-                    onClick={() => toggleCourse(course.id)}
+                    onClick={() => toggleCourse(course.courseId)}
                     style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }}
                   >
-                    <span><strong>{course.name}</strong> — {course.description}</span>
-                    <span>{expandedCourseId === course.id ? '▲' : '▼'}</span>
+                    <span><strong>{course.title}</strong> — {course.description}</span>
+                    <span>{expandedCourseId === course.courseId ? '▲' : '▼'}</span>
                   </div>
 
-                  {expandedCourseId === course.id && (
+                  {expandedCourseId === course.courseId && (
                     <div style={{ marginTop: '8px', paddingLeft: '12px' }}>
-                      {!course.modules || course.modules.length === 0 ? (
+                      {!modulesCache[course.courseId] ? (
+                        <p>Загрузка модулей...</p>
+                      ) : modulesCache[course.courseId].length === 0 ? (
                         <p style={{ color: '#888' }}>Модули отсутствуют</p>
                       ) : (
-                        course.modules.map(mod => (
-                          <div key={mod.id} style={{ marginBottom: '8px' }}>
-                            <strong>📚 {mod.name}</strong>
-                            {!mod.tasks || mod.tasks.length === 0 ? (
+                        modulesCache[course.courseId].map((mod: any) => (
+                          <div key={mod.moduleId} style={{ marginBottom: '8px' }}>
+                            <strong>📚 {mod.name}</strong> {!mod.isOpen && '🔒'}
+                            {!tasksCache[mod.moduleId] ? (
+                              <p style={{ marginLeft: '12px' }}>Загрузка задач...</p>
+                            ) : tasksCache[mod.moduleId].length === 0 ? (
                               <p style={{ color: '#888', marginLeft: '12px' }}>Задания отсутствуют</p>
                             ) : (
                               <ul>
-                                {mod.tasks.map(task => (
-                                  <li key={task.id}>📝 {task.content}</li>
+                                {tasksCache[mod.moduleId].map((task: any) => (
+                                  <li key={task.taskId}>
+                                    📝 Задача #{task.taskId} {task.isCompleted && '✅'}
+                                  </li>
                                 ))}
                               </ul>
                             )}
