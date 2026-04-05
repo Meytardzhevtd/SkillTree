@@ -45,8 +45,8 @@ public class ModuleController {
 			description = "Возвращается список модуелей по id курса."
 					+ "По итогу видим список и доступность модуля")
 	@GetMapping("/courses/{id}")
-	public List<ModuleSimpleDto> getListModulesByCourseId(@PathVariable Long courseId) {
-		return moduleService.getListModulesByCourseId(courseId);
+	public List<ModuleSimpleDto> getListModulesByCourseId(@PathVariable Long id) {
+		return moduleService.getListModulesByCourseId(id);
 	}
 
 	@DeleteMapping("/{id}")
