@@ -1,16 +1,17 @@
 package com.skilltree.dto.tasks;
 
-import java.util.Map;
-
+import com.skilltree.dto.content.TaskContent;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.*;
+import java.util.Map;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateTaskDto {
+
 	@NotNull
 	private Long id;
 
@@ -18,6 +19,11 @@ public class UpdateTaskDto {
 	private Long taskTypeId;
 
 	@NotNull
-	@Size(min = 1)
-	private Map<String, Object> content;
+	private TaskContent content;
+
+	@SuppressWarnings("unchecked")
+	public Map<String, Object> getContentAsMap() {
+		ObjectMapper mapper = new ObjectMapper();
+		return mapper.convertValue(this.content, Map.class);
+	}
 }
