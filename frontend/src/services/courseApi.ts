@@ -1,4 +1,3 @@
-// src/services/courseApi.ts
 import axios from 'axios';
 import { getToken } from './authStorage';
 
@@ -34,6 +33,11 @@ export const createCourse = async (name: string, description: string) => {
 
 export const createModule = async (courseId: number, name: string, canBeOpen: boolean = false) => {
   const res = await api.post('/module', { courseId, name, can_be_open: canBeOpen });
+  return res.data;
+};
+
+export const deleteModule = async (moduleId: number) => {
+  const res = await api.delete(`/module/${moduleId}`);
   return res.data;
 };
 
