@@ -40,6 +40,8 @@ public class TaskController {
 	public ResponseEntity<TaskResponse> create(@RequestBody @Valid CreateTaskDto createTaskDto,
 			UriComponentsBuilder uriBuilder) {
 		log.debug("Create task request: {}", createTaskDto);
+		log.info("!!!!!!! RECEIVED TASK: {}", createTaskDto); // ← ДОБАВИТЬ
+		log.info("!!!!!!! CONTENT: {}", createTaskDto.getContent()); // ← ДОБАВИТЬ
 		TaskResponse response = taskService.create(createTaskDto);
 		URI location = uriBuilder.path("/api/tasks/{id}").buildAndExpand(response.getId()).toUri();
 		return ResponseEntity.created(location).body(response);
