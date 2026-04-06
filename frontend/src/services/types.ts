@@ -15,3 +15,9 @@ export interface CourseDto {
   description: string;
   modules: ModuleDto[];
 }
+
+export interface CourseSimpleDto {
+  courseId: number;
+  title: string;
+  description: string;
+}
