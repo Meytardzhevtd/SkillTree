@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { getAllCourses } from '../services/courseApi';
 
 interface Course {
     courseId: number;
-    name: string;
+    title: string;
     description: string;
 }
 
@@ -28,8 +27,8 @@ const CatalogPage: React.FC = () => {
         fetchCourses();
     }, []);
 
-    const handleEnroll = (courseId: number, courseName: string) => {
-        alert(`Функция записи на курс "${courseName}" (ID ${courseId}) будет доступна позже.`);
+    const handleEnroll = (courseId: number, courseTitle: string) => {
+        alert(`Функция записи на курс "${courseTitle}" (ID ${courseId}) будет доступна позже.`);
     };
 
     if (loading) return <div style={{ padding: '20px' }}>Загрузка курсов...</div>;
@@ -50,12 +49,9 @@ const CatalogPage: React.FC = () => {
                             transition: 'box-shadow 0.2s',
                         }}
                     >
-                        <Link
-                            to={`/course/${course.courseId}`}
-                            style={{ textDecoration: 'none', color: 'inherit' }}
-                        >
-                            <h2 style={{ margin: '0 0 8px 0', color: '#007bff' }}>{course.title}</h2>
-                        </Link>
+                        <h2 style={{ margin: '0 0 8px 0', color: '#007bff' }}>
+                            {course.title}
+                        </h2>
                         <p style={{ margin: '0 0 16px 0', color: '#666' }}>
                             {course.description || 'Нет описания'}
                         </p>
