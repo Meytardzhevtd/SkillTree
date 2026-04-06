@@ -79,6 +79,12 @@ public class CourseService {
 	}
 
 	@Transactional
+	public List<CourseSimpleDto> getAllCourseSimpleDto() {
+		return courseRepository.findAll().stream().map(course -> new CourseSimpleDto(course.getId(),
+				course.getName(), course.getDescription())).collect(Collectors.toList());
+	}
+
+	@Transactional
 	public CourseDto getCourseDtoById(Long id) {
 		Optional<Courses> course = courseRepository.findById(id);
 		if (course.isEmpty()) {

@@ -2,7 +2,10 @@ package com.skilltree.controller;
 
 import com.skilltree.Service.CourseService;
 import com.skilltree.dto.courses.CourseDto;
+import com.skilltree.dto.courses.CourseSimpleDto;
 import com.skilltree.dto.courses.CreateCourseRequest;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,9 +29,9 @@ public class CourseController {
 		return courseService.getCourseDtoById(id);
 	}
 
-	// @GetMapping("/user/{userId}/owner")
-	// public List<CourseDto> getOwnedCourses(@PathVariable Long userId) {
-	// return courseService.getCoursesByUserAndRole(userId, "OWNER");
-	// }
+	@GetMapping("/all")
+	public ResponseEntity<List<CourseSimpleDto>> getAll() {
+		return ResponseEntity.ok(courseService.getAllCourseSimpleDto());
+	}
 
 }
