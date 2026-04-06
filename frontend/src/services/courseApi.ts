@@ -69,3 +69,8 @@ export const getModuleById = async (moduleId: number) => {
   const res = await api.get(`/module/${moduleId}`);
   return res.data;
 };
+
+export const getAllCourses = async () => {
+  const res = await api.get('/course/all');
+  return res.data;
+};

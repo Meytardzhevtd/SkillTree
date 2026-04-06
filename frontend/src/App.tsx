@@ -9,6 +9,7 @@ import CreateCoursePage from './pages/CreateCoursePage'
 import MyCoursesPage from './pages/MyCoursesPage'
 import CoursePage from './pages/CoursePage'
 import ModulePage from './pages/ModulePage';
+import CatalogPage from './pages/CatalogPage';
 
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/create-course" element={<CreateCoursePage />} />
           <Route path="/my-courses" element={<MyCoursesPage />} />
+          <Route path="/catalog" element={<CatalogPage />} />
           <Route path="/course/:courseId" element={<CoursePage />} />
           <Route path="/module/:moduleId" element={<ModulePage />} />
         </Route>

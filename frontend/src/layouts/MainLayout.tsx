@@ -17,6 +17,7 @@ function MainLayout() {
         <nav style={{ marginTop: '8px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           <Link to="/dashboard">Личный кабинет</Link>
           <Link to="/my-courses">Мои курсы</Link>
+          <Link to="/catalog">Каталог курсов</Link>
           <Link to="/create-course">Создать курс</Link>
           {authenticated && (
             <button type="button" onClick={handleLogout} style={{ marginLeft: 'auto' }}>
