@@ -60,7 +60,7 @@ const CatalogPage: React.FC = () => {
                             {course.description || 'Нет описания'}
                         </p>
                         <button
-                            onClick={() => handleEnroll(course.courseId, course.name)}
+                            onClick={() => handleEnroll(course.courseId, course.title)}
                             style={{
                                 width: '100%',
                                 padding: '8px 16px',
