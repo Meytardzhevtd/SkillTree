@@ -1,6 +1,7 @@
 package com.skilltree.Service;
 import com.skilltree.dto.courses.CourseSimpleDto;
 import com.skilltree.dto.takeCourse.TakeCourseDto;
+import com.skilltree.dto.takeCourse.TakenCourseInfo;
 import com.skilltree.exception.UserNotFoundException;
 import com.skilltree.model.Courses;
 import com.skilltree.model.Roles;
@@ -14,6 +15,10 @@ import jakarta.transaction.Transactional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.List;
 
 @Service
 @Transactional
@@ -50,18 +55,16 @@ public class TakeCourseService {
 			takenCourses.setCourse(course);
 			takenCourses.setUser(user);
 			takenCoursesRepository.save(takenCourses);
-		} else {
-			throw new RuntimeException("Course have already chosen");
-		}
 
-		if (!rolesRepository.existsByCourseIdAndUserId(request.getCourseId(),
-				request.getUserId())) {
 			Roles role = new Roles();
 			role.setCourse_role("student");
 			role.setCourse(course);
 			role.setUser(user);
 			rolesRepository.save(role);
+		} else {
+			throw new RuntimeException("Course have already chosen");
 		}
+
 		return new CourseSimpleDto(request.getCourseId(), course.getName(),
 				course.getDescription());
 	}

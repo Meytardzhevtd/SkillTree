@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { getAllCourses } from '../services/courseApi';
+import { useNavigate } from 'react-router-dom';
+import { getAllCourses, enrollToCourse } from '../services/courseApi';
+import { getUser } from '../services/authStorage';
 
 interface Course {
     courseId: number;
@@ -11,6 +13,7 @@ const CatalogPage: React.FC = () => {
     const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchCourses = async () => {
@@ -27,8 +30,29 @@ const CatalogPage: React.FC = () => {
         fetchCourses();
     }, []);
 
-    const handleEnroll = (courseId: number, courseTitle: string) => {
-        alert(`Функция записи на курс "${courseTitle}" (ID ${courseId}) будет доступна позже.`);
+    const handleEnroll = async (courseId: number, courseName: string) => {
+        const user = getUser();
+        if (!user) {
+            alert('Пользователь не авторизован');
+            return;
+        }
+
+        try {
+            await enrollToCourse(courseId, user.id, 'student');
+            alert(`Вы успешно записались на курс "${courseName}"!`);
+            navigate('/my-courses');
+        } catch (err: any) {
+            console.error(err);
+            let message = 'Ошибка записи';
+            if (err.response?.data) {
+                message = typeof err.response.data === 'string'
+                    ? err.response.data
+                    : err.response.data.message || message;
+            } else if (err.message) {
+                message = err.message;
+            }
+            alert(message);
+        }
     };
 
     if (loading) return <div style={{ padding: '20px' }}>Загрузка курсов...</div>;
@@ -36,19 +60,11 @@ const CatalogPage: React.FC = () => {
 
     return (
         <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+            <h1>Каталог курсов</h1>
             {courses.length === 0 && <p>Пока нет доступных курсов.</p>}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
                 {courses.map(course => (
-                    <div
-                        key={course.courseId}
-                        style={{
-                            border: '1px solid #ddd',
-                            borderRadius: '8px',
-                            padding: '16px',
-                            width: '280px',
-                            transition: 'box-shadow 0.2s',
-                        }}
-                    >
+                    <div key={course.courseId} style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '16px', width: '280px', transition: 'box-shadow 0.2s' }}>
                         <h2 style={{ margin: '0 0 8px 0', color: '#007bff' }}>
                             {course.title}
                         </h2>
@@ -57,16 +73,7 @@ const CatalogPage: React.FC = () => {
                         </p>
                         <button
                             onClick={() => handleEnroll(course.courseId, course.title)}
-                            style={{
-                                width: '100%',
-                                padding: '8px 16px',
-                                backgroundColor: '#007bff',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '1rem',
-                            }}
+                            style={{ width: '100%', padding: '8px 16px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem' }}
                             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#0056b3')}
                             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#007bff')}
                         >
