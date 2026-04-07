@@ -1,41 +1,43 @@
-import { getToken } from './authStorage'
+import axios from 'axios';
+import { getToken } from './authStorage';
+
+const api = axios.create({
+  baseURL: '/api',
+});
+
+api.interceptors.request.use(config => {
+  const token = getToken();
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
 export type ProfileResponse = {
-  id: number
-  username: string
-  email: string
-  role: string
-}
+  id: number;
+  username: string;
+  email: string;
+  role: string;
+};
 
 export async function getMyProfile(): Promise<ProfileResponse> {
-  const token = getToken()
-  if (!token) throw new Error('Необходима авторизация')
-
-  const res = await fetch('/api/profile/me', {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (!res.ok) {
-    const msg = await res.text()
-    throw new Error(msg || 'Ошибка запроса к серверу')
-  }
-  return res.json()
+  const res = await api.get('/profile/me');
+  return res.data;
 }
 
 export async function updateMyProfileUsername(username: string): Promise<ProfileResponse> {
-  const token = getToken()
-  if (!token) throw new Error('Необходима авторизация')
+  const res = await api.put('/profile/me', { username });
+  return res.data;
+}
 
-  const res = await fetch('/api/profile/update', {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ username }),
-  })
-  if (!res.ok) {
-    const msg = await res.text()
-    throw new Error(msg || 'Ошибка обновления профиля')
-  }
-  return res.json()
+export async function getMyAvatar(): Promise<string> {
+  const res = await api.get('/avatar/me');
+  return res.data;
+}
+
+export async function uploadAvatar(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await api.post('/avatar/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+  return res.data;
 }

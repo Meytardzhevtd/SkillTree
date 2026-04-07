@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import {
   getMyProfile,
   updateMyProfileUsername,
+  getMyAvatar,
+  uploadAvatar,
   type ProfileResponse,
 } from '../services/profileApi'
 import { getMyCourses, getModulesByCourseId, getTasksByModuleId } from '../services/courseApi'
@@ -20,6 +22,11 @@ function DashboardPage() {
   const [modulesCache, setModulesCache] = useState<Record<number, any[]>>({})
   const [tasksCache, setTasksCache] = useState<Record<number, any[]>>({})
 
+  // Для аватарки
+  const [avatarUrl, setAvatarUrl] = useState<string>('')
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
+
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -34,6 +41,20 @@ function DashboardPage() {
       }
     }
     void loadProfile()
+  }, [])
+
+  useEffect(() => {
+    const loadAvatar = async () => {
+      try {
+        const url = await getMyAvatar()
+        if (url && url !== 'No avatar') {
+          setAvatarUrl(url)
+        }
+      } catch (err) {
+        console.error('Ошибка загрузки аватарки:', err)
+      }
+    }
+    void loadAvatar()
   }, [])
 
   useEffect(() => {
@@ -69,6 +90,31 @@ function DashboardPage() {
     }
   }
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0])
+    }
+  }
+
+  const handleUploadAvatar = async () => {
+    if (!selectedFile) {
+      setSaveMessage('Выберите файл')
+      return
+    }
+    setUploading(true)
+    setSaveMessage('')
+    try {
+      const url = await uploadAvatar(selectedFile)
+      setAvatarUrl(url)
+      setSaveMessage('Аватарка обновлена')
+      setSelectedFile(null)
+    } catch (err: any) {
+      setSaveMessage(err.message || 'Ошибка загрузки')
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const toggleCourse = async (courseId: number) => {
     if (expandedCourseId === courseId) {
       setExpandedCourseId(null)
@@ -95,7 +141,7 @@ function DashboardPage() {
   }
 
   return (
-    <div style={{ maxWidth: '640px', margin: '40px auto', padding: '16px' }}>
+    <div style={{ maxWidth: '800px', margin: '40px auto', padding: '16px' }}>
       <h1>Личный кабинет</h1>
 
       {loading && <p>Загрузка профиля...</p>}
@@ -103,6 +149,55 @@ function DashboardPage() {
 
       {profile && (
         <>
+          {/* Блок с аватаркой */}
+          <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt="Avatar"
+                style={{
+                  width: '170px',
+                  height: '170px',
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: '3px solid #007bff'
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: '120px',
+                  height: '120px',
+                  borderRadius: '50%',
+                  background: '#6c757d',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontSize: '48px',
+                  margin: '0 auto'
+                }}
+              >
+                {profile.username.charAt(0).toUpperCase()}
+              </div>
+            )}
+
+            <div style={{ marginTop: '12px' }}>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/gif"
+                onChange={handleFileChange}
+                style={{ marginRight: '8px' }}
+              />
+              <button
+                onClick={handleUploadAvatar}
+                disabled={uploading || !selectedFile}
+              >
+                {uploading ? 'Загрузка...' : 'Загрузить аватарку'}
+              </button>
+            </div>
+          </div>
+
           <div style={{ lineHeight: 1.8, marginBottom: '24px' }}>
             <p><strong>ID:</strong> {profile.id}</p>
             <p><strong>Username:</strong> {profile.username}</p>
@@ -126,7 +221,7 @@ function DashboardPage() {
               >
                 {saving ? 'Сохранение...' : 'Сохранить'}
               </button>
-              {saveMessage && <p style={{ marginTop: '8px' }}>{saveMessage}</p>}
+              {saveMessage && <p style={{ marginTop: '8px', color: saveMessage.includes('ошибка') ? 'red' : 'green' }}>{saveMessage}</p>}
             </div>
           </div>
 

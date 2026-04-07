@@ -1,5 +1,8 @@
 package com.skilltree.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,6 +28,9 @@ public class Users {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "role", nullable = false)
 	private Role role = Role.BASE_USER;
+
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+	private List<Avatar> avatars = new ArrayList<>();
 
 	public Users(String username, String email, String password) {
 		this.username = username;
