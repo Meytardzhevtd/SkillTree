@@ -74,3 +74,8 @@ export const getAllCourses = async () => {
   const res = await api.get('/course/all');
   return res.data;
 };
+
+export const enrollToCourse = async (courseId: number, userId: number, role: string = 'student') => {
+  const res = await api.post('/take/course', { courseId, userId, role });
+  return res.data;
+};
