@@ -22,9 +22,7 @@ services:
       - "8080:8080"
     depends_on:
       - db
-    
-
-    
+      - minio
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/skilltree
       SPRING_DATASOURCE_USERNAME: postgres
@@ -34,11 +32,23 @@ services:
       SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: true
     networks:
       - skilltree-network
-
-    
-    
     volumes:
       - ./logs:/SkillTree/backend/logs
+
+  minio:
+    image: minio/minio:latest
+    container_name: skilltree-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - skilltree-network
 
 networks:
   skilltree-network:
@@ -46,3 +56,4 @@ networks:
 
 volumes:
   pgdata:
+  minio_data:
