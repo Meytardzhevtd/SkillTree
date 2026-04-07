@@ -69,4 +69,17 @@ public class TakeCourseService {
 				course.getDescription());
 	}
 
+	@Transactional
+	public List<TakenCourseInfo> getByUserId() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth == null || !auth.isAuthenticated()) {
+			throw new RuntimeException("User not authenticated");
+		}
+		String email = auth.getName();
+		Users user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new RuntimeException("User not found"));
+		return takenCoursesRepository.findByUserId(user.getId()).stream()
+				.map((takenCourse) -> new TakenCourseInfo(takenCourse)).toList();
+	}
+
 }
