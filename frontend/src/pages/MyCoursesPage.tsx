@@ -1,17 +1,23 @@
-// src/pages/MyCoursesPage.tsx
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getMyCreatedCourses, getMyEnrolledCourses } from '../services/courseApi';
+import { getMyCreatedCourses, getMyTakenCourses } from '../services/courseApi';
 
-interface Course {
+interface CreatedCourse {
     courseId: number;
     title: string;
     description: string;
 }
 
+interface EnrolledCourse {
+    courseId: number;
+    name: string;
+    description: string;
+    progress: number;
+}
+
 const MyCoursesPage: React.FC = () => {
-    const [createdCourses, setCreatedCourses] = useState<Course[]>([]);
-    const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
+    const [createdCourses, setCreatedCourses] = useState<CreatedCourse[]>([]);
+    const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
     const [activeTab, setActiveTab] = useState<'created' | 'enrolled'>('created');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -21,7 +27,7 @@ const MyCoursesPage: React.FC = () => {
             try {
                 const [created, enrolled] = await Promise.all([
                     getMyCreatedCourses(),
-                    getMyEnrolledCourses(),
+                    getMyTakenCourses(),
                 ]);
                 setCreatedCourses(created);
                 setEnrolledCourses(enrolled);
@@ -38,7 +44,6 @@ const MyCoursesPage: React.FC = () => {
     if (loading) return <p>Загрузка курсов...</p>;
     if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
-    const courses = activeTab === 'created' ? createdCourses : enrolledCourses;
     const emptyMessage = activeTab === 'created'
         ? 'У вас пока нет созданных курсов'
         : 'Вы пока не записаны на курсы';
@@ -76,26 +81,30 @@ const MyCoursesPage: React.FC = () => {
                 </button>
             </div>
 
-            {courses.length === 0 ? (
-                <p>{emptyMessage}</p>
-            ) : (
+            {activeTab === 'created' && createdCourses.length === 0 && <p>{emptyMessage}</p>}
+            {activeTab === 'enrolled' && enrolledCourses.length === 0 && <p>{emptyMessage}</p>}
+
+            {activeTab === 'created' && createdCourses.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {courses.map((course) => (
-                        <div
-                            key={course.courseId}
-                            style={{
-                                border: '1px solid #ddd',
-                                borderRadius: '8px',
-                                padding: '16px',
-                                transition: 'box-shadow 0.2s',
-                            }}
-                        >
-                            <Link
-                                to={`/course/${course.courseId}`}
-                                style={{ textDecoration: 'none', color: 'inherit' }}
-                            >
+                    {createdCourses.map((course) => (
+                        <div key={course.courseId} style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '16px', transition: 'box-shadow 0.2s' }}>
+                            <Link to={`/course/${course.courseId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <h2 style={{ margin: '0 0 8px 0', color: '#007bff' }}>{course.title}</h2>
                                 <p style={{ margin: 0, color: '#666' }}>{course.description}</p>
+                            </Link>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {activeTab === 'enrolled' && enrolledCourses.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {enrolledCourses.map((course) => (
+                        <div key={course.courseId} style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '16px', transition: 'box-shadow 0.2s' }}>
+                            <Link to={`/course/${course.courseId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                <h2 style={{ margin: '0 0 8px 0', color: '#007bff' }}>{course.name}</h2>
+                                <p style={{ margin: 0, color: '#666' }}>{course.description}</p>
+                                <p style={{ marginTop: '8px', fontSize: '0.8rem', color: '#888' }}>Прогресс: {course.progress}%</p>
                             </Link>
                         </div>
                     ))}

@@ -69,3 +69,18 @@ export const getModuleById = async (moduleId: number) => {
   const res = await api.get(`/module/${moduleId}`);
   return res.data;
 };
+
+export const getAllCourses = async () => {
+  const res = await api.get('/course/all');
+  return res.data;
+};
+
+export const enrollToCourse = async (courseId: number, userId: number, role: string = 'student') => {
+  const res = await api.post('/take/course', { courseId, userId, role });
+  return res.data;
+};
+
+export const getMyTakenCourses = async () => {
+  const res = await api.get('/take/course/my');
+  return res.data;
+};
