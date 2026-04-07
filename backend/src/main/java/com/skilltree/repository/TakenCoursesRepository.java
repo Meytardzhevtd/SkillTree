@@ -13,4 +13,5 @@ public interface TakenCoursesRepository extends JpaRepository<TakenCourses, Long
 	boolean existsByCourseIdAndUserId(@Param("courseId") Long courseId,
 			@Param("userId") Long userId);
 	List<TakenCourses> findByUser(Users user);
+	List<TakenCourses> findByUserId(Long userId);
 }
