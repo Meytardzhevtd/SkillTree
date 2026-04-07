@@ -5,9 +5,9 @@ import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 @Entity
-@Table(name = "Roles",
-		uniqueConstraints = @UniqueConstraint(name = "uq_role",
-				columnNames = {"id_course", "id_user"}))
+// @Table(name = "Roles",
+// uniqueConstraints = @UniqueConstraint(name = "uq_role",
+// columnNames = {"id_course", "id_user"}))
 
 @Data
 @NoArgsConstructor
