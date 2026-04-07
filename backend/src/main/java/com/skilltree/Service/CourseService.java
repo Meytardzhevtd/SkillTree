@@ -63,7 +63,7 @@ public class CourseService {
 
 		Roles role = new Roles();
 
-		role.setCourse_role("base_user");
+		role.setCourse_role("admin");
 		role.setCourse(savedCourse);
 		role.setUser(user);
 
