@@ -5,11 +5,15 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Optional;
 
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import com.skilltree.model.Users;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -54,6 +58,27 @@ public class JwtService {
 					&& !isTokenExpired(token);
 		} catch (JwtException | IllegalArgumentException ex) {
 			return false;
+		}
+	}
+
+	public Optional<Long> extractUserIdFromAuthHeader(String authHeader) {
+		if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+			return Optional.empty();
+		}
+
+		String token = authHeader.substring(7);
+
+		try {
+			Claims claims = extractAllClaims(token);
+
+			if (claims.getExpiration().before(new Date())) {
+				return Optional.empty();
+			}
+
+			return Optional.of(claims.get("userId", Long.class));
+
+		} catch (IllegalArgumentException e) {
+			return Optional.empty();
 		}
 	}
 
