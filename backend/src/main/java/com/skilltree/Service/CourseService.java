@@ -13,6 +13,8 @@ import com.skilltree.repository.ModuleRepository;
 import com.skilltree.repository.RolesRepository;
 import com.skilltree.repository.TaskRepository;
 import com.skilltree.repository.UserRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import jakarta.transaction.Transactional;
 
@@ -94,10 +96,16 @@ public class CourseService {
 	}
 
 	@Transactional
-	public List<CourseDto> getCoursesByUserAndRole(Long userId, String role) {
-		List<Courses> coursesUser = courseRepository.findByUserIdAndRole(userId, role);
-		return coursesUser.stream().map(course -> new CourseDto(course))
-				.collect(Collectors.toList());
+	public List<CourseSimpleDto> getCoursesByUserAndRole(String role) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth == null || !auth.isAuthenticated()) {
+			throw new RuntimeException("User not authenticated");
+		}
+		String email = auth.getName();
+		Users user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new RuntimeException("User not found"));
+		return courseRepository.findByUserIdAndRole(user.getId(), role).stream()
+				.map((course) -> new CourseSimpleDto(course)).collect(Collectors.toList());
 	}
 
 	@Transactional
