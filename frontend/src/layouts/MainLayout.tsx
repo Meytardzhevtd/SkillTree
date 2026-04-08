@@ -3,7 +3,6 @@ import { clearAccessToken, isAuthenticated } from '../services/authStorage'
 
 function MainLayout() {
   const navigate = useNavigate()
-
   const authenticated = isAuthenticated()
 
   const handleLogout = () => {
@@ -14,13 +13,14 @@ function MainLayout() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <header style={{ borderBottom: '1px solid #ddd', padding: '12px 16px' }}>
-        <strong>SkillTree</strong>
-        <nav style={{ marginTop: '8px', display: 'flex', gap: '12px' }}>
-          <Link to="/login">Вход</Link>
-          <Link to="/register">Регистрация</Link>
+        <strong style={{ fontSize: '20px' }}>SkillTree</strong>
+        <nav style={{ marginTop: '8px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           <Link to="/dashboard">Личный кабинет</Link>
+          <Link to="/my-courses">Мои курсы</Link>
+          <Link to="/catalog">Каталог курсов</Link>
+          <Link to="/create-course">Создать курс</Link>
           {authenticated && (
-            <button type="button" onClick={handleLogout}>
+            <button type="button" onClick={handleLogout} style={{ marginLeft: 'auto' }}>
               Выйти
             </button>
           )}
@@ -31,7 +31,7 @@ function MainLayout() {
         <Outlet />
       </main>
 
-      <footer style={{ borderTop: '1px solid #ddd', padding: '12px 16px' }}>
+      <footer style={{ borderTop: '1px solid #ddd', padding: '12px 16px', textAlign: 'center' }}>
         © SkillTree
       </footer>
     </div>

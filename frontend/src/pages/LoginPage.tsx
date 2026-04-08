@@ -1,101 +1,162 @@
-import { useState } from 'react'
-import type { FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { loginUser } from '../services/authApi.ts'
-import { saveAccessToken } from '../services/authStorage'
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { loginUser, registerUser } from '../services/authApi';
 
-type LoginFormState = {
-    email: string
-    password: string
-}
+const LoginPage: React.FC = () => {
+    const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [username, setUsername] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
-function LoginPage() {
-    const navigate = useNavigate()
-
-    const [form, setForm] = useState<LoginFormState>({
-        email: '',
-        password: '',
-    })
-
-    const [isSubmitting, setIsSubmitting] = useState(false)
-
-    const [successMessage, setSuccessMessage] = useState('')
-    const [errorMessage, setErrorMessage] = useState('')
-
-    const handleInputChange = (field: keyof LoginFormState, value: string) => {
-        setForm((prev) => ({ ...prev, [field]: value }))
-    }
-
-    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault()
-
-        setSuccessMessage('')
-        setErrorMessage('')
-        setIsSubmitting(true)
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
 
         try {
-            const authData = await loginUser({
-                email: form.email,
-                password: form.password,
-            })
-
-            saveAccessToken(authData.token)
-            setSuccessMessage('Вход выполнен. JWT сохранён в localStorage.')
-            setForm((prev) => ({ ...prev, password: '' }))
-            navigate('/dashboard')
-        } catch (error) {
-            if (error instanceof Error) {
-                setErrorMessage(error.message)
-            } else {
-                setErrorMessage('Ошибка входа')
-            }
+            await loginUser({ email, password });
+            navigate('/dashboard');
+        } catch (err: any) {
+            setError(err.message || 'Неверный email или пароль');
         } finally {
-            setIsSubmitting(false)
+            setLoading(false);
         }
-    }
+    };
+
+    const handleRegister = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        try {
+            await registerUser({ username, email, password });
+            await loginUser({ email, password });
+            navigate('/dashboard');
+        } catch (err: any) {
+            setError(err.message || 'Ошибка регистрации');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
-        <div style={{ maxWidth: '420px', margin: '40px auto', padding: '16px' }}>
-            <h1>Вход</h1>
+        <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
+            <h1 style={{ textAlign: 'center' }}>SkillTree</h1>
 
-            <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: '12px' }}>
-                    <label htmlFor="email">Email</label>
-                    <br />
-                    <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="Введите email"
-                        value={form.email}
-                        onChange={(event) => handleInputChange('email', event.target.value)}
-                        required
-                    />
-                </div>
-
-                <div style={{ marginBottom: '12px' }}>
-                    <label htmlFor="password">Пароль</label>
-                    <br />
-                    <input
-                        id="password"
-                        name="password"
-                        type="password"
-                        placeholder="Введите пароль"
-                        value={form.password}
-                        onChange={(event) => handleInputChange('password', event.target.value)}
-                        required
-                    />
-                </div>
-
-                <button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Входим...' : 'Войти'}
+            <div style={{ display: 'flex', marginBottom: '20px', borderBottom: '1px solid #ddd' }}>
+                <button
+                    onClick={() => setActiveTab('login')}
+                    style={{
+                        flex: 1,
+                        padding: '10px',
+                        border: 'none',
+                        background: activeTab === 'login' ? '#007bff' : 'transparent',
+                        color: activeTab === 'login' ? 'white' : '#333',
+                        cursor: 'pointer',
+                        borderRadius: '4px 4px 0 0',
+                    }}
+                >
+                    Вход
                 </button>
-            </form>
+                <button
+                    onClick={() => setActiveTab('register')}
+                    style={{
+                        flex: 1,
+                        padding: '10px',
+                        border: 'none',
+                        background: activeTab === 'register' ? '#007bff' : 'transparent',
+                        color: activeTab === 'register' ? 'white' : '#333',
+                        cursor: 'pointer',
+                        borderRadius: '4px 4px 0 0',
+                    }}
+                >
+                    Регистрация
+                </button>
+            </div>
 
-            {successMessage && <p style={{ color: 'green', marginTop: '12px' }}>{successMessage}</p>}
-            {errorMessage && <p style={{ color: 'crimson', marginTop: '12px' }}>{errorMessage}</p>}
+            {activeTab === 'login' ? (
+                <form onSubmit={handleLogin}>
+                    <div style={{ marginBottom: '16px' }}>
+                        <label>Email</label>
+                        <br />
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+                        />
+                    </div>
+                    <div style={{ marginBottom: '16px' }}>
+                        <label>Пароль</label>
+                        <br />
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+                        />
+                    </div>
+                    {error && <p style={{ color: 'red' }}>{error}</p>}
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        style={{ width: '100%', padding: '10px', marginTop: '8px' }}
+                    >
+                        {loading ? 'Вход...' : 'Войти'}
+                    </button>
+                </form>
+            ) : (
+                <form onSubmit={handleRegister}>
+                    <div style={{ marginBottom: '16px' }}>
+                        <label>Имя пользователя</label>
+                        <br />
+                        <input
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            required
+                            style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+                        />
+                    </div>
+                    <div style={{ marginBottom: '16px' }}>
+                        <label>Email</label>
+                        <br />
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+                        />
+                    </div>
+                    <div style={{ marginBottom: '16px' }}>
+                        <label>Пароль</label>
+                        <br />
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+                        />
+                    </div>
+                    {error && <p style={{ color: 'red' }}>{error}</p>}
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        style={{ width: '100%', padding: '10px', marginTop: '8px' }}
+                    >
+                        {loading ? 'Регистрация...' : 'Зарегистрироваться'}
+                    </button>
+                </form>
+            )}
         </div>
-    )
-}
+    );
+};
 
-export default LoginPage
+export default LoginPage;

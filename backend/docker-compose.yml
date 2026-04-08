@@ -22,6 +22,7 @@ services:
       - "8080:8080"
     depends_on:
       - db
+      - minio
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/skilltree
       SPRING_DATASOURCE_USERNAME: postgres
@@ -29,6 +30,44 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: true
       SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: true
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin123
+      MINIO_BUCKET_NAME: skilltree-images
+    networks:
+      - skilltree-network
+    volumes:
+      - ./logs:/SkillTree/backend/logs
+
+  minio:
+    image: minio/minio:latest
+    container_name: skilltree-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - skilltree-network
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: skilltree-minio-init
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      mc alias set myminio http://minio:9000 minioadmin minioadmin123;
+      mc mb myminio/skilltree-images || true;
+      mc anonymous set public myminio/skilltree-images;
+      echo 'MinIO initialized successfully';
+      exit 0;
+      "
     networks:
       - skilltree-network
 
@@ -38,3 +77,4 @@ networks:
 
 volumes:
   pgdata:
+  minio_data:

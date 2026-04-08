@@ -1,45 +1,46 @@
 package com.skilltree.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.type.SqlTypes;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @Entity
-@Table(name = "tasks")
+@Table(name = "Tasks")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Task {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	// связь к модулю (id_module)
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "id_module", nullable = false)
+	@ManyToOne
+	@JoinColumn(name = "id_type_task", referencedColumnName = "id", nullable = false,
+			foreignKey = @ForeignKey(name = "fk_task_type", value = ConstraintMode.CONSTRAINT))
+	@OnDelete(action = OnDeleteAction.CASCADE)
+	private TaskTypes task_type;
+
+	@ManyToOne
+	@JoinColumn(name = "id_module", referencedColumnName = "id", nullable = false,
+			foreignKey = @ForeignKey(name = "fk_task_module", value = ConstraintMode.CONSTRAINT))
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	private Module module;
 
-	@Column(columnDefinition = "text", nullable = false)
-	private String content;
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "content", columnDefinition = "JSONB", nullable = false)
+	private Map<String, Object> content;
 
-	// ======= геттеры и сеттеры =======
-	public Long getId() {
-		return id;
-	}
+	@OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<UserAnswers> user_answers = new ArrayList<>();
 
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public Module getModule() {
-		return module;
-	}
-
-	public void setModule(Module module) {
-		this.module = module;
-	}
-
-	public String getContent() {
-		return content;
-	}
-
-	public void setContent(String content) {
-		this.content = content;
-	}
 }

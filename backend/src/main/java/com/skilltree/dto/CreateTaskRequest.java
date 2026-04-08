@@ -1,12 +1,14 @@
 package com.skilltree.dto;
 
-public class CreateTaskRequest {
-	private String content;
+import java.util.Map;
 
-	public String getContent() {
+public class CreateTaskRequest {
+	private Map<String, Object> content;
+
+	public Map<String, Object> getContent() {
 		return content;
 	}
-	public void setContent(String content) {
+	public void setContent(Map<String, Object> content) {
 		this.content = content;
 	}
 }

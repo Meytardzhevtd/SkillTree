@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getToken } from './authStorage';
 
 const api = axios.create({
-  baseURL: '/api/course-manager',
+  baseURL: '/api',
 });
 
 api.interceptors.request.use(config => {
@@ -11,32 +11,76 @@ api.interceptors.request.use(config => {
   return config;
 });
 
-export const getCourses = async (userId: number) => {
-  const res = await api.get(`/courses?userId=${userId}`);
+export const getMyCreatedCourses = async () => {
+  const res = await api.get('/user/my-courses');
   return res.data;
 };
 
-export const createCourse = async (userId: number, name: string, description: string) => {
-  const res = await api.post('/create-course', { userId, name, description });
+export const getMyEnrolledCourses = async () => {
+  const res = await api.get('/user/courses');
   return res.data;
 };
 
-export const createFullCourse = async (data: any) => {
-  const res = await api.post('/create-full-course', data);
+export const getMyCourses = async () => {
+  const res = await api.get('/user/courses');
   return res.data;
 };
 
-export const addModule = async (courseId: number, name: string) => {
-  const res = await api.post(`/add-module?courseId=${courseId}`, { name });
+export const createCourse = async (name: string, description: string) => {
+  const res = await api.post('/course', { name, description });
   return res.data;
 };
 
-export const addTask = async (moduleId: number, content: string) => {
-  const res = await api.post(`/add-task?moduleId=${moduleId}`, { content });
+export const createModule = async (courseId: number, name: string, canBeOpen: boolean = false) => {
+  const res = await api.post('/module', { courseId, name, can_be_open: canBeOpen });
+  return res.data;
+};
+
+export const deleteModule = async (moduleId: number) => {
+  const res = await api.delete(`/module/${moduleId}`);
+  return res.data;
+};
+
+export const createTask = async (moduleId: number, taskTypeId: number, content: any) => {
+  const res = await api.post('/tasks', {
+    taskTypeId: taskTypeId,
+    moduleId: moduleId,
+    content: content
+  });
   return res.data;
 };
 
 export const getCourseById = async (courseId: number) => {
   const res = await api.get(`/course/${courseId}`);
+  return res.data;
+};
+
+export const getModulesByCourseId = async (courseId: number) => {
+  const res = await api.get(`/module/courses/${courseId}`);
+  return res.data;
+};
+
+export const getTasksByModuleId = async (moduleId: number) => {
+  const res = await api.get(`/tasks?moduleId=${moduleId}`);
+  return res.data;
+};
+
+export const getModuleById = async (moduleId: number) => {
+  const res = await api.get(`/module/${moduleId}`);
+  return res.data;
+};
+
+export const getAllCourses = async () => {
+  const res = await api.get('/course/all');
+  return res.data;
+};
+
+export const enrollToCourse = async (courseId: number, userId: number, role: string = 'student') => {
+  const res = await api.post('/take/course', { courseId, userId, role });
+  return res.data;
+};
+
+export const getMyTakenCourses = async () => {
+  const res = await api.get('/take/course/my');
   return res.data;
 };
