@@ -32,3 +32,5 @@ yarn-error.log*
 
 # Uploads / temporary files
 uploads/
+
+context_for_ai.txt
