@@ -3,7 +3,7 @@ WORKDIR /app
 
 COPY pom.xml ./
 COPY eclipse-formatter.xml ./
-RUN mvn -q -DskipTests dependency:go-offline
+RUN mvn -q -B -DskipTests dependency:go-offline
 
 COPY src ./src
 RUN mvn -q -DskipTests clean package
