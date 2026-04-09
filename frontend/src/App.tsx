@@ -8,9 +8,9 @@ import RegisterPage from './pages/RegisterPage'
 import CreateCoursePage from './pages/CreateCoursePage'
 import MyCoursesPage from './pages/MyCoursesPage'
 import CoursePage from './pages/CoursePage'
-import ModulePage from './pages/ModulePage';
-import CatalogPage from './pages/CatalogPage';
-
+import ModulePage from './pages/ModulePage'
+import CatalogPage from './pages/CatalogPage'
+import TaskPage from './pages/TaskPage'
 
 function App() {
   return (
@@ -28,6 +28,7 @@ function App() {
           <Route path="/catalog" element={<CatalogPage />} />
           <Route path="/course/:courseId" element={<CoursePage />} />
           <Route path="/module/:moduleId" element={<ModulePage />} />
+          <Route path="/task/:taskId" element={<TaskPage />} />
         </Route>
       </Route>
 

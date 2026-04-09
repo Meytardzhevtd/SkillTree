@@ -65,6 +65,11 @@ export const getTasksByModuleId = async (moduleId: number) => {
   return res.data;
 };
 
+export const getTaskById = async (taskId: number) => {
+  const res = await api.get(`/tasks/${taskId}`);
+  return res.data;
+};
+
 export const getModuleById = async (moduleId: number) => {
   const res = await api.get(`/module/${moduleId}`);
   return res.data;
@@ -83,4 +88,27 @@ export const enrollToCourse = async (courseId: number, userId: number, role: str
 export const getMyTakenCourses = async () => {
   const res = await api.get('/take/course/my');
   return res.data;
+};
+
+export const startModule = async (moduleId: number, takenCourseId: number) => {
+  const res = await api.post(`/module/${moduleId}/start?takenCourseId=${takenCourseId}`);
+  return res.data as { progressModuleId: number; progress: number };
+};
+
+export const submitAnswer = async (
+  taskId: number,
+  progressModuleId: number,
+  answer: number | number[]
+) => {
+  const res = await api.post(`/tasks/${taskId}/submit`, {
+    progressModuleId,
+    answer,
+  });
+  return res.data as {
+    correct: boolean;
+    alreadySolved: boolean;
+    message: string;
+    moduleProgress: number;
+    tasks: { taskId: number; isCompleted: boolean }[];
+  };
 };
