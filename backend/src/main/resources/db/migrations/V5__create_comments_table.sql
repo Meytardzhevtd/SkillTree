@@ -19,6 +19,6 @@ CREATE TABLE IF NOT EXISTS comments_task (
         ON UPDATE CASCADE
 );
 
-CREATE INDEX idx_comments_task_id ON comments(task_id);
+CREATE INDEX idx_comments_task_id ON comments_task(task_id);
 
-CREATE INDEX idx_comments_created_at ON comments(created_at);
+CREATE INDEX idx_comments_created_at ON comments_task(created_at);

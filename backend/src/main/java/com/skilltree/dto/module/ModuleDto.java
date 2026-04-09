@@ -1,11 +1,9 @@
 package com.skilltree.dto.module;
 
-import com.skilltree.model.Dependencies;
+import com.skilltree.dto.tasks.TaskSimpleDto;
 import com.skilltree.model.Module;
-import com.skilltree.model.Task;
 import lombok.Data;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -14,14 +12,19 @@ public class ModuleDto {
 	private Long courseId;
 	private String name;
 	private Boolean can_be_open;
-	private List<Task> tasks = new ArrayList<>();
-	private List<Dependencies> blockedBy = new ArrayList<>();
+	private List<TaskSimpleDto> tasks;
+	private List<Long> blockedBy;
+
 	public ModuleDto(Module module) {
 		this.id = module.getId();
 		this.courseId = module.getCourse().getId();
 		this.name = module.getName();
 		this.can_be_open = module.getCan_be_open();
-		this.tasks = module.getTasks();
-		this.blockedBy = module.getBlockedBy();
+
+		this.tasks = module.getTasks().stream().map(task -> new TaskSimpleDto(task.getId(), false))
+				.toList();
+
+		this.blockedBy = module.getBlockedBy().stream().map(dep -> dep.getModule().getId())
+				.toList();
 	}
 }
