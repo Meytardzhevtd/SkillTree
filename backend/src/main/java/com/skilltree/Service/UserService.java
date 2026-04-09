@@ -36,6 +36,9 @@ public class UserService {
 		if (userRepository.existsByEmail(user.getEmail())) {
 			throw new RuntimeException("Email already exists");
 		}
+		if (userRepository.existsByUsername(user.getUsername())) {
+			throw new RuntimeException("This username is used. Sorry men");
+		}
 		Users newUser = new Users(user.getUsername(), user.getEmail(),
 				passwordEncoder.encode(user.getPassword()));
 		return userRepository.save(newUser);
