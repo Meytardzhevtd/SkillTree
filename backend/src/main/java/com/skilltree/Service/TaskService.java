@@ -1,14 +1,14 @@
 package com.skilltree.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.skilltree.controller.TaskController;
 import com.skilltree.dto.tasks.CreateTaskDto;
 import com.skilltree.dto.tasks.TaskResponse;
 import com.skilltree.dto.tasks.UpdateTaskDto;
@@ -22,17 +22,14 @@ import com.skilltree.repository.ModuleRepository;
 import com.skilltree.repository.TaskRepository;
 import com.skilltree.repository.TaskTypeRepository;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @Transactional(readOnly = true)
 @Service
 public class TaskService {
+	private static final Logger log = LoggerFactory.getLogger(TaskService.class);
+
 	private final TaskRepository taskRepository;
 	private final TaskTypeRepository taskTypeRepository;
 	private final ModuleRepository moduleRepository;
-
-	private static final Logger log = LoggerFactory.getLogger(TaskService.class);
 
 	@Autowired
 	public TaskService(TaskRepository taskRepository, TaskTypeRepository taskTypeRepository,
@@ -44,49 +41,19 @@ public class TaskService {
 
 	@Transactional
 	public TaskResponse create(CreateTaskDto createTaskDto) {
-		log.info("начало create task");
+		log.info("Создание задания, taskTypeId={}, moduleId={}", createTaskDto.getTaskTypeId(),
+				createTaskDto.getModuleId());
 
-		// Проверяем и добавляем TaskTypes если их нет
-		TaskTypes taskType = ensureTaskTypeExists(createTaskDto.getTaskTypeId());
-
-		log.debug("task type найден: {}", taskType.getName());
+		TaskTypes taskType = taskTypeRepository.findById(createTaskDto.getTaskTypeId())
+				.orElseThrow(() -> new TaskTypesNotFound(createTaskDto.getTaskTypeId()));
 
 		Module module = moduleRepository.findById(createTaskDto.getModuleId())
 				.orElseThrow(() -> new ModuleNotFoundException(createTaskDto.getModuleId()));
 
-		log.debug("module найден");
-
 		Task saved = taskRepository.save(createTaskDto.toEntity(taskType, module));
-		log.debug("Task saved");
+
+		log.info("Задание создано, id={}", saved.getId());
 		return TaskResponse.of(saved);
-	}
-
-	/**
-	 * Проверяет наличие TaskType в БД, если нет - создаёт.
-	 */
-	// TODO
-	private TaskTypes ensureTaskTypeExists(Long taskTypeId) {
-		Optional<TaskTypes> existing = taskTypeRepository.findById(taskTypeId);
-
-		if (existing.isPresent()) {
-			return existing.get();
-		}
-
-		// Если нет - создаём
-		TaskTypes newTaskType = new TaskTypes();
-		newTaskType.setId(taskTypeId);
-
-		if (taskTypeId == 1) {
-			newTaskType.setName("ONE_POSSIBLE_ANSWER");
-		} else if (taskTypeId == 2) {
-			newTaskType.setName("MULTIPLE");
-		} else {
-			throw new RuntimeException("Unknown task type id: " + taskTypeId);
-		}
-
-		log.info("TaskType с id={} не найден в БД, создаём новый: {}", taskTypeId,
-				newTaskType.getName());
-		return taskTypeRepository.save(newTaskType);
 	}
 
 	public TaskResponse get(Long taskId) {
@@ -104,16 +71,15 @@ public class TaskService {
 				.orElseThrow(() -> new TaskTypesNotFound(updateTaskDto.getTaskTypeId()));
 
 		task.setTask_type(taskType);
-		task.setContent(updateTaskDto.getContentAsMap());
-		Task saved = taskRepository.save(task);
+		task.setContent(updateTaskDto.getContent()); // напрямую, без getContentAsMap()
 
+		Task saved = taskRepository.save(task);
 		return TaskResponse.of(saved);
 	}
 
 	@Transactional
 	public void delete(Long id) {
 		Task task = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
-
 		taskRepository.delete(task);
 	}
 
@@ -121,7 +87,7 @@ public class TaskService {
 		Module module = moduleRepository.findById(moduleId)
 				.orElseThrow(() -> new ModuleNotFoundException(moduleId));
 
-		return taskRepository.findByModule(module).stream().map((task) -> TaskResponse.of(task))
+		return taskRepository.findByModule(module).stream().map(TaskResponse::of)
 				.sorted((p1, p2) -> Long.compare(p1.getId(), p2.getId()))
 				.collect(Collectors.toList());
 	}

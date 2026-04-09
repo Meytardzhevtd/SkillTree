@@ -1,7 +1,6 @@
 package com.skilltree.dto.content;
 
 import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +12,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class OneAnswerTaskContent implements TaskContent {
 	private String question;
-	private List<String> options; // варианты ответа
+	private List<String> options;
 	private int indexCorrectAnswer;
 }

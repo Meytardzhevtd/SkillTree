@@ -1,15 +1,15 @@
 package com.skilltree.dto;
 
+import com.skilltree.dto.content.TaskContent;
 import com.skilltree.model.Task;
 import lombok.*;
-import java.util.Map;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class TaskDto {
 	private Long id;
-	private Map<String, Object> content;
+	private TaskContent content;
 
 	public static TaskDto fromEntity(Task t) {
 		TaskDto dto = new TaskDto();
