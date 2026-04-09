@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getMyCreatedCourses, getMyTakenCourses } from '../services/courseApi';
+import { getMyCoursesByRole, getMyTakenCourses } from '../services/courseApi';
 
 interface CreatedCourse {
     courseId: number;
@@ -26,7 +26,7 @@ const MyCoursesPage: React.FC = () => {
         const loadCourses = async () => {
             try {
                 const [created, enrolled] = await Promise.all([
-                    getMyCreatedCourses(),
+                    getMyCoursesByRole('admin'),
                     getMyTakenCourses(),
                 ]);
                 setCreatedCourses(created);
@@ -101,7 +101,7 @@ const MyCoursesPage: React.FC = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     {enrolledCourses.map((course) => (
                         <div key={course.courseId} style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '16px', transition: 'box-shadow 0.2s' }}>
-                            <Link to={`/course/${course.courseId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <Link to={`/module/all/${course.courseId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <h2 style={{ margin: '0 0 8px 0', color: '#007bff' }}>{course.name}</h2>
                                 <p style={{ margin: 0, color: '#666' }}>{course.description}</p>
                                 <p style={{ marginTop: '8px', fontSize: '0.8rem', color: '#888' }}>Прогресс: {course.progress}%</p>
@@ -111,11 +111,14 @@ const MyCoursesPage: React.FC = () => {
                 </div>
             )}
 
-            <div style={{ marginTop: '24px' }}>
-                <Link to="/create-course">
-                    <button>➕ Создать новый курс</button>
-                </Link>
-            </div>
+            {/* Кнопка создания курса только для вкладки "Мои курсы (созданные)" */}
+            {activeTab === 'created' && (
+                <div style={{ marginTop: '24px' }}>
+                    <Link to="/create-course">
+                        <button>➕ Создать новый курс</button>
+                    </Link>
+                </div>
+            )}
         </div>
     );
 };

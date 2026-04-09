@@ -84,3 +84,8 @@ export const getMyTakenCourses = async () => {
   const res = await api.get('/take/course/my');
   return res.data;
 };
+
+export const getMyCoursesByRole = async (role: string) => {
+  const res = await api.get(`/course/my/${role}`);
+  return res.data;
+};

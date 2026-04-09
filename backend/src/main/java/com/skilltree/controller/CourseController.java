@@ -34,4 +34,9 @@ public class CourseController {
 		return ResponseEntity.ok(courseService.getAllCourseSimpleDto());
 	}
 
+	@GetMapping("/my/{role}")
+	public List<CourseSimpleDto> getMyCoursesByRole(@PathVariable String role) {
+		return courseService.getCoursesByUserAndRole(role);
+	}
+
 }
