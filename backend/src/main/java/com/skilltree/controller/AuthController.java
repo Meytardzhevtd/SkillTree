@@ -10,6 +10,7 @@ import com.skilltree.model.Users;
 import com.skilltree.repository.UserRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 import com.skilltree.Service.UserService;
 import com.skilltree.Service.JwtService;
@@ -38,6 +39,7 @@ public class AuthController {
 	}
 
 	@PostMapping("register")
+	// TODO: добавить @Valid перед @RequestBody
 	public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
 		log.info("Register attempt: email={}", request.getEmail());
 		try {
