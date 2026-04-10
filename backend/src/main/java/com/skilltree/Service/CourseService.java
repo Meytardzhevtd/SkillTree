@@ -45,7 +45,6 @@ public class CourseService {
 	@Transactional
 	public CourseDto createCourse(CreateCourseRequest request) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
 		if (auth == null || !auth.isAuthenticated()) {
 			throw new RuntimeException("User not authenticated");
 		}
@@ -55,7 +54,6 @@ public class CourseService {
 		Courses course = new Courses();
 		course.setName(request.getName());
 		course.setDescription(request.getDescription());
-
 		Courses savedCourse = courseRepository.save(course);
 
 		Users user = userRepository.findByEmail(email)
@@ -65,7 +63,6 @@ public class CourseService {
 		role.setCourse_role("admin");
 		role.setCourse(savedCourse);
 		role.setUser(user);
-
 		rolesRepository.save(role);
 
 		return new CourseDto(savedCourse);
@@ -76,8 +73,8 @@ public class CourseService {
 	}
 
 	public List<CourseSimpleDto> getAllCourseSimpleDto() {
-		return courseRepository.findAll().stream().map(course -> new CourseSimpleDto(course.getId(),
-				course.getName(), course.getDescription())).collect(Collectors.toList());
+		return courseRepository.findAll().stream().map(CourseSimpleDto::new)
+				.collect(Collectors.toList());
 	}
 
 	public CourseDto getCourseDtoById(Long id) {
@@ -86,17 +83,41 @@ public class CourseService {
 		return new CourseDto(course);
 	}
 
-	public List<CourseDto> getCoursesByUserAndRole(Long userId, String role) {
-		return courseRepository.findByUserIdAndRole(userId, role).stream().map(CourseDto::new)
-				.collect(Collectors.toList());
+	public List<CourseSimpleDto> getCoursesByUserAndRole(String role) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth == null || !auth.isAuthenticated()) {
+			throw new RuntimeException("User not authenticated");
+		}
+		String email = auth.getName();
+		Users user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new UserNotFoundException(1L));
+		return courseRepository.findByUserIdAndRole(user.getId(), role).stream()
+				.map(CourseSimpleDto::new).collect(Collectors.toList());
 	}
 
 	public List<CourseSimpleDto> getCoursesByUserId(Long userId) {
 		Users user = userRepository.findById(userId)
 				.orElseThrow(() -> new UserNotFoundException(userId));
-		return courseRepository.findByUser(user).stream()
-				.map(course -> new CourseSimpleDto(course.getId(), course.getName(),
-						course.getDescription()))
+		return courseRepository.findByUser(user).stream().map(CourseSimpleDto::new)
 				.collect(Collectors.toList());
+	}
+
+	public String getMyRoleInCourse(Long courseId) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth == null || !auth.isAuthenticated()) {
+			return null;
+		}
+		String email = auth.getName();
+		Users user = userRepository.findByEmail(email).orElse(null);
+		if (user == null)
+			return null;
+
+		if (rolesRepository.existsByCourseIdAndUserIdAndRole(courseId, user.getId(), "admin")) {
+			return "admin";
+		}
+		if (rolesRepository.existsByCourseIdAndUserIdAndRole(courseId, user.getId(), "student")) {
+			return "student";
+		}
+		return null;
 	}
 }

@@ -90,6 +90,16 @@ export const getMyTakenCourses = async () => {
   return res.data;
 };
 
+export const getMyCoursesByRole = async (role: string) => {
+  const res = await api.get(`/course/my/${role}`);
+  return res.data;
+};
+
+export const getMyRoleInCourse = async (courseId: number): Promise<string> => {
+  const res = await api.get(`/course/${courseId}/my-role`);
+  return res.data.role;
+};
+
 export const startModule = async (moduleId: number, takenCourseId: number) => {
   const res = await api.post(`/module/${moduleId}/start?takenCourseId=${takenCourseId}`);
   return res.data as { progressModuleId: number; progress: number };
