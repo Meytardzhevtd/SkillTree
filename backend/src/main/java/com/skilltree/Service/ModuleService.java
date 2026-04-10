@@ -8,7 +8,6 @@ import com.skilltree.dto.tasks.TaskSimpleDto;
 import com.skilltree.exception.CourseNotFoundException;
 import com.skilltree.exception.ModuleIsNotAvailable;
 import com.skilltree.exception.ModuleNotFoundException;
-import com.skilltree.exception.UserNotFoundException;
 
 import com.skilltree.model.Courses;
 import com.skilltree.model.Module;
@@ -20,10 +19,12 @@ import com.skilltree.model.ProgressModule;
 import com.skilltree.repository.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,18 +39,20 @@ public class ModuleService {
 	private final ProgressModuleRepository progressModuleRepository;
 	private final UserRepository userRepository;
 	private final TakenCoursesRepository takenCoursesRepository;
+	private final RolesRepository rolesRepository;
 
 	@Autowired
 	public ModuleService(ModuleRepository moduleRepository, CourseRepository courseRepository,
 			DependencyRepository dependencyRepository,
 			ProgressModuleRepository progressModuleRepository, UserRepository userRepository,
-			TakenCoursesRepository takenCoursesRepository) {
+			TakenCoursesRepository takenCoursesRepository, RolesRepository rolesRepository) {
 		this.moduleRepository = moduleRepository;
 		this.courseRepository = courseRepository;
 		this.dependencyRepository = dependencyRepository;
 		this.progressModuleRepository = progressModuleRepository;
 		this.userRepository = userRepository;
 		this.takenCoursesRepository = takenCoursesRepository;
+		this.rolesRepository = rolesRepository;
 	}
 
 	@Transactional
@@ -57,22 +60,31 @@ public class ModuleService {
 		Courses course = courseRepository.findById(request.getCourseId())
 				.orElseThrow(() -> new CourseNotFoundException(request.getCourseId()));
 
+		checkAdminAccess(request.getCourseId());
+
 		Module module = new Module(null, course, request.getName(), request.getCan_be_open());
 		Module saved = moduleRepository.save(module);
-		return new ModuleResponse(saved.getId(), saved.getName(), new ArrayList<TaskSimpleDto>());
+		return new ModuleResponse(saved.getId(), saved.getName(), new ArrayList<TaskSimpleDto>(),
+				saved.getCourse().getId());
 	}
 
 	public ModuleResponse getModule(Long moduleId) {
 		Module module = moduleRepository.findById(moduleId)
 				.orElseThrow(() -> new ModuleNotFoundException(moduleId));
-		if (module.getCan_be_open()) {
-			Optional<Long> currentUserId = getCurrentUserId();
+
+		Optional<Long> currentUserId = getCurrentUserId();
+
+		boolean isAdmin = currentUserId.isPresent()
+				&& rolesRepository.existsByCourseIdAndUserIdAndRole(module.getCourse().getId(),
+						currentUserId.get(), "admin");
+
+		if (module.getCan_be_open() || isAdmin) {
 			List<TaskSimpleDto> tasks = module.getTasks().stream()
 					.map(task -> new TaskSimpleDto(task.getId(),
 							isTaskCompletedByUser(task.getUser_answers(), currentUserId)))
 					.toList();
-
-			return new ModuleResponse(moduleId, module.getName(), tasks);
+			return new ModuleResponse(moduleId, module.getName(), tasks,
+					module.getCourse().getId());
 		} else {
 			throw new ModuleIsNotAvailable(moduleId);
 		}
@@ -115,7 +127,23 @@ public class ModuleService {
 	public void deleteModule(Long moduleId) {
 		Module module = moduleRepository.findById(moduleId)
 				.orElseThrow(() -> new ModuleNotFoundException(moduleId));
+
+		checkAdminAccess(module.getCourse().getId());
+
 		moduleRepository.delete(module);
+	}
+
+	private void checkAdminAccess(Long courseId) {
+		Long userId = getCurrentUserId()
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+						"Пользователь не авторизован"));
+
+		boolean isAdmin = rolesRepository.existsByCourseIdAndUserIdAndRole(courseId, userId,
+				"admin");
+		if (!isAdmin) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+					"У вас нет прав для редактирования этого курса");
+		}
 	}
 
 	private Optional<Long> getCurrentUserId() {

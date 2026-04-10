@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { getTasksByModuleId, createTask } from '../services/courseApi';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { getTasksByModuleId, createTask, getMyRoleInCourse } from '../services/courseApi';
 
 interface Task {
     id: number;
@@ -17,13 +17,15 @@ interface Task {
 
 const ModulePage: React.FC = () => {
     const { moduleId } = useParams<{ moduleId: string }>();
+    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
+
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isAdmin, setIsAdmin] = useState(false);
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [creating, setCreating] = useState(false);
 
-    // Форма создания задачи
     const [taskType, setTaskType] = useState<'ONE_POSSIBLE_ANSWER' | 'MULTIPLE'>('ONE_POSSIBLE_ANSWER');
     const [question, setQuestion] = useState('');
     const [options, setOptions] = useState<string[]>(['', '']);
@@ -31,16 +33,23 @@ const ModulePage: React.FC = () => {
     const [correctAnswers, setCorrectAnswers] = useState<number[]>([]);
 
     useEffect(() => {
-        loadTasks();
+        loadAll();
     }, [moduleId]);
 
-    const loadTasks = async () => {
+    const loadAll = async () => {
         try {
             setLoading(true);
-            const data = await getTasksByModuleId(Number(moduleId));
-            setTasks(data);
+
+            const tasksData = await getTasksByModuleId(Number(moduleId));
+            setTasks(tasksData);
+
+            const courseId = searchParams.get('courseId');
+            if (courseId) {
+                const role = await getMyRoleInCourse(Number(courseId));
+                setIsAdmin(role === 'admin');
+            }
         } catch (err) {
-            console.error('Ошибка загрузки задач:', err);
+            console.error('Ошибка загрузки:', err);
         } finally {
             setLoading(false);
         }
@@ -53,11 +62,8 @@ const ModulePage: React.FC = () => {
     const handleRemoveOption = (index: number) => {
         const newOptions = options.filter((_, i) => i !== index);
         setOptions(newOptions);
-        // Обновляем корректные индексы
         if (taskType === 'ONE_POSSIBLE_ANSWER') {
-            if (correctIndex >= newOptions.length) {
-                setCorrectIndex(0);
-            }
+            if (correctIndex >= newOptions.length) setCorrectIndex(0);
         } else {
             const newCorrectAnswers = correctAnswers
                 .filter(i => i !== index)
@@ -89,7 +95,6 @@ const ModulePage: React.FC = () => {
             alert('Введите вопрос');
             return;
         }
-
         const filteredOptions = options.filter(opt => opt.trim() !== '');
         if (filteredOptions.length < 2) {
             alert('Добавьте минимум 2 варианта ответа');
@@ -97,8 +102,8 @@ const ModulePage: React.FC = () => {
         }
 
         const content: any = {
-            type: taskType === 'ONE_POSSIBLE_ANSWER' ? 'ONE_POSSIBLE_ANSWER' : 'MULTIPLE',
-            question: question,
+            type: taskType,
+            question,
             options: filteredOptions,
         };
 
@@ -114,18 +119,13 @@ const ModulePage: React.FC = () => {
 
         try {
             setCreating(true);
-            await createTask(
-                Number(moduleId),
-                taskType === 'ONE_POSSIBLE_ANSWER' ? 1 : 2,
-                content
-            );
-
+            await createTask(Number(moduleId), taskType === 'ONE_POSSIBLE_ANSWER' ? 1 : 2, content);
             setQuestion('');
             setOptions(['', '']);
             setCorrectIndex(0);
             setCorrectAnswers([]);
             setShowCreateForm(false);
-            await loadTasks();
+            await loadAll();
         } catch (err) {
             console.error('Ошибка создания задачи:', err);
             alert('Ошибка при создании задачи');
@@ -146,14 +146,16 @@ const ModulePage: React.FC = () => {
 
             <h1>Модуль #{moduleId}</h1>
 
-            <button
-                onClick={() => setShowCreateForm(!showCreateForm)}
-                style={{ marginBottom: '20px', padding: '8px 16px' }}
-            >
-                {showCreateForm ? '❌ Отмена' : '+ Создать задачу'}
-            </button>
+            {isAdmin && (
+                <button
+                    onClick={() => setShowCreateForm(!showCreateForm)}
+                    style={{ marginBottom: '20px', padding: '8px 16px' }}
+                >
+                    {showCreateForm ? '❌ Отмена' : '+ Создать задачу'}
+                </button>
+            )}
 
-            {showCreateForm && (
+            {isAdmin && showCreateForm && (
                 <div style={{
                     border: '1px solid #007bff',
                     borderRadius: '8px',
@@ -227,7 +229,9 @@ const ModulePage: React.FC = () => {
             <h2>Задачи модуля</h2>
 
             {tasks.length === 0 ? (
-                <p>В модуле пока нет задач. Создайте первую задачу!</p>
+                <p>
+                    {isAdmin ? 'В модуле пока нет задач. Создайте первую задачу!' : 'В модуле пока нет задач.'}
+                </p>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {tasks.map((task) => (

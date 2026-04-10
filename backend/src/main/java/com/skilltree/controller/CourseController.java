@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/course")
@@ -34,4 +35,14 @@ public class CourseController {
 		return ResponseEntity.ok(courseService.getAllCourseSimpleDto());
 	}
 
+	@GetMapping("/my/{role}")
+	public List<CourseSimpleDto> getMyCoursesByRole(@PathVariable String role) {
+		return courseService.getCoursesByUserAndRole(role);
+	}
+
+	@GetMapping("/{id}/my-role")
+	public ResponseEntity<Map<String, String>> getMyRole(@PathVariable Long id) {
+		String role = courseService.getMyRoleInCourse(id);
+		return ResponseEntity.ok(Map.of("role", role != null ? role : "none"));
+	}
 }

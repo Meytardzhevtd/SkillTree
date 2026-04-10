@@ -12,5 +12,5 @@ import com.skilltree.dto.tasks.TaskSimpleDto;
  *
  */
 
-public record ModuleResponse(Long moduleId, String name, List<TaskSimpleDto> tasks) {
+public record ModuleResponse(Long moduleId, String name, List<TaskSimpleDto> tasks, Long courseId) {
 }
