@@ -82,12 +82,11 @@ function DashboardPage() {
     setUploading(true)
     setSaveMessage('')
     try {
-      const url = await uploadAvatar(selectedFile)
-      setAvatarUrl(url)
-      setSaveMessage('Аватарка обновлена')
-      setSelectedFile(null)
+      await uploadAvatar(selectedFile)
+      window.location.reload()
     } catch (err: any) {
       setSaveMessage(err.message || 'Ошибка загрузки')
+      setUploading(false)
     } finally {
       setUploading(false)
     }
