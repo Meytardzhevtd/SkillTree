@@ -66,8 +66,9 @@ public class TaskController {
 
 	@GetMapping
 	public ResponseEntity<List<TaskResponse>> listByModule(
-			@RequestParam(name = "moduleId") Long moduleId) {
-		List<TaskResponse> list = taskService.getAllTasksByModule(moduleId);
+			@RequestParam(name = "moduleId") Long moduleId,
+			@RequestParam(name = "progressModuleId", required = false) Long progressModuleId) {
+		List<TaskResponse> list = taskService.getAllTasksByModule(moduleId, progressModuleId);
 		return ResponseEntity.ok(list);
 	}
 

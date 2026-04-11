@@ -96,19 +96,31 @@ public class TaskSubmissionService {
 	}
 
 	private void recalculateCourseProgress(TakenCourses takenCourses) {
-		List<ProgressModule> allModules = takenCourses.getProgress_modules();
+		List<ProgressModule> allProgressModules = takenCourses.getProgress_modules();
 
-		if (allModules.isEmpty())
+		if (allProgressModules.isEmpty())
 			return;
 
-		float avgProgress = (float) allModules.stream().mapToDouble(ProgressModule::getProgress)
-				.average().orElse(0);
+		long totalTasksInCourse = 0;
+		long solvedTasksInCourse = 0;
 
-		takenCourses.setProgress(avgProgress);
+		for (ProgressModule pm : allProgressModules) {
+			long totalInModule = taskRepository.findByModule(pm.getModule()).size();
+			long solvedInModule = userAnswerRepository
+					.countDistinctCorrectTasksByProgressModule(pm);
+			totalTasksInCourse += totalInModule;
+			solvedTasksInCourse += solvedInModule;
+		}
+
+		float courseProgress = totalTasksInCourse == 0
+				? 0
+				: (float) solvedTasksInCourse / totalTasksInCourse * 100;
+
+		takenCourses.setProgress(courseProgress);
 		takenCoursesRepository.save(takenCourses);
 
-		log.info("Прогресс курса takenCourseId={} обновлён: {}%", takenCourses.getId(),
-				avgProgress);
+		log.info("Прогресс курса takenCourseId={} обновлён: {}/{}={}%", takenCourses.getId(),
+				solvedTasksInCourse, totalTasksInCourse, courseProgress);
 	}
 
 	private List<TaskSimpleDto> getTaskStatuses(ProgressModule progressModule) {
