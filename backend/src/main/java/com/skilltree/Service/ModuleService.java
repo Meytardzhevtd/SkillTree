@@ -64,6 +64,16 @@ public class ModuleService {
 
 		Module module = new Module(null, course, request.getName(), request.getCan_be_open());
 		Module saved = moduleRepository.save(module);
+
+		List<TakenCourses> enrolledStudents = takenCoursesRepository.findByCourseId(course.getId());
+		for (TakenCourses tc : enrolledStudents) {
+			ProgressModule pm = new ProgressModule();
+			pm.setModule(saved);
+			pm.setTaken_courses(tc);
+			pm.setProgress(0.0f);
+			progressModuleRepository.save(pm);
+		}
+
 		return new ModuleResponse(saved.getId(), saved.getName(), new ArrayList<TaskSimpleDto>(),
 				saved.getCourse().getId());
 	}
