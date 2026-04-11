@@ -20,6 +20,7 @@ const CoursePage: React.FC = () => {
     const navigate = useNavigate();
 
     const [courseName, setCourseName] = useState('');
+    const [courseDescription, setCourseDescription] = useState('');
     const [modules, setModules] = useState<Module[]>([]);
     const [newModuleName, setNewModuleName] = useState('');
     const [loading, setLoading] = useState(true);
@@ -46,6 +47,7 @@ const CoursePage: React.FC = () => {
             ]);
 
             setCourseName(course.name);
+            setCourseDescription(course.description)
             setModules(modulesData || []);
             setIsAdmin(role === 'admin');
 
@@ -120,6 +122,11 @@ const CoursePage: React.FC = () => {
             </button>
 
             <h1>{courseName}</h1>
+            {courseDescription && (
+                <p style={{ color: '#555', marginBottom: '20px', lineHeight: '1.6' }}>
+                    {courseDescription}
+                </p>
+            )}
 
             {!isAdmin && courseProgress !== null && (
                 <div style={{ marginBottom: '24px', padding: '16px', background: '#f8f9fa', borderRadius: '8px', border: '1px solid #e9ecef' }}>
