@@ -20,7 +20,7 @@ const ModulePage: React.FC = () => {
     const { moduleId } = useParams<{ moduleId: string }>();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const location = useLocation(); // ← следим за location для обновления при возврате
+    const location = useLocation();
 
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
@@ -69,6 +69,18 @@ const ModulePage: React.FC = () => {
             console.error('Ошибка загрузки:', err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleBack = () => {
+        const courseId = searchParams.get('courseId');
+        const takenCourseId = searchParams.get('takenCourseId');
+        if (courseId) {
+            const params = new URLSearchParams();
+            if (takenCourseId) params.set('takenCourseId', takenCourseId);
+            navigate(`/course/${courseId}${params.toString() ? `?${params.toString()}` : ''}`);
+        } else {
+            navigate(-1);
         }
     };
 
@@ -146,7 +158,7 @@ const ModulePage: React.FC = () => {
 
     return (
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-            <button onClick={() => navigate(-1)} style={{ marginBottom: '16px' }}>← Назад</button>
+            <button onClick={handleBack} style={{ marginBottom: '16px' }}>← Назад к курсу</button>
 
             <h1>Модуль #{moduleId}</h1>
 
@@ -193,7 +205,12 @@ const ModulePage: React.FC = () => {
                         <label>Варианты ответов:</label>
                         {options.map((opt, idx) => (
                             <div key={idx} style={{ display: 'flex', alignItems: 'center', marginTop: '8px', gap: '8px' }}>
-                                <input type={taskType === 'ONE_POSSIBLE_ANSWER' ? 'radio' : 'checkbox'} name="correct" checked={taskType === 'ONE_POSSIBLE_ANSWER' ? correctIndex === idx : correctAnswers.includes(idx)} onChange={() => handleCorrectAnswerToggle(idx)} />
+                                <input
+                                    type={taskType === 'ONE_POSSIBLE_ANSWER' ? 'radio' : 'checkbox'}
+                                    name="correct"
+                                    checked={taskType === 'ONE_POSSIBLE_ANSWER' ? correctIndex === idx : correctAnswers.includes(idx)}
+                                    onChange={() => handleCorrectAnswerToggle(idx)}
+                                />
                                 <input type="text" value={opt} onChange={(e) => handleOptionChange(idx, e.target.value)} placeholder={`Вариант ${idx + 1}`} style={{ flex: 1, padding: '6px' }} />
                                 <button onClick={() => handleRemoveOption(idx)} disabled={options.length <= 2}>✖</button>
                             </div>
