@@ -25,7 +25,6 @@ const ModulePage: React.FC = () => {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
-    const [progressModuleId, setProgressModuleId] = useState<number | null>(null);
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [creating, setCreating] = useState(false);
 
@@ -56,7 +55,6 @@ const ModulePage: React.FC = () => {
             if (role === 'student' && takenCourseId) {
                 const startResult = await startModule(Number(moduleId), Number(takenCourseId));
                 pmId = startResult.progressModuleId;
-                setProgressModuleId(pmId);
             }
 
             const tasksData = await getTasksByModuleId(
