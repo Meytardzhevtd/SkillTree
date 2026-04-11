@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { getCourseById, createModule, deleteModule, getModulesByCourseId, getMyRoleInCourse } from '../services/courseApi';
 
 interface Module {
@@ -10,7 +10,9 @@ interface Module {
 
 const CoursePage: React.FC = () => {
     const { courseId } = useParams<{ courseId: string }>();
+    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
+
     const [courseName, setCourseName] = useState('');
     const [modules, setModules] = useState<Module[]>([]);
     const [newModuleName, setNewModuleName] = useState('');
@@ -75,7 +77,13 @@ const CoursePage: React.FC = () => {
     };
 
     const handleModuleClick = (moduleId: number) => {
-        navigate(`/module/${moduleId}?courseId=${courseId}`);
+        const params = new URLSearchParams();
+        params.set('courseId', courseId!);
+        const takenCourseId = searchParams.get('takenCourseId');
+        if (takenCourseId) {
+            params.set('takenCourseId', takenCourseId);
+        }
+        navigate(`/module/${moduleId}?${params.toString()}`);
     };
 
     if (loading) {
