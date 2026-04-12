@@ -118,3 +118,25 @@ export const submitAnswer = async (
     tasks: { taskId: number; isCompleted: boolean }[];
   };
 };
+
+
+export const getLessonsByModuleId = async (moduleId: number) => {
+  const res = await api.get(`/lessons/module/${moduleId}`);
+  return res.data;
+};
+
+export const createLesson = async (moduleId: number, title: string, content: string) => {
+  const res = await api.post('/lessons', { moduleId, title, content });
+  return res.data;
+};
+
+export const deleteLesson = async (lessonId: number) => {
+  const res = await api.delete(`/lessons/${lessonId}`);
+  return res.data;
+};
+
+export const getLessonById = async (lessonId: number) => {
+  const res = await api.get(`/lessons/${lessonId}`);
+  return res.data;
+};
+

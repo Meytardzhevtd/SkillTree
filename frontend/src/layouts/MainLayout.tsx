@@ -13,26 +13,32 @@ function MainLayout() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <header style={{ borderBottom: '1px solid #ddd', padding: '12px 16px' }}>
-        <strong style={{ fontSize: '20px' }}>SkillTree</strong>
-        <nav style={{ marginTop: '8px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          <Link to="/dashboard">Личный кабинет</Link>
-          <Link to="/my-courses">Мои курсы</Link>
-          <Link to="/catalog">Каталог курсов</Link>
-          <Link to="/create-course">Создать курс</Link>
-          {authenticated && (
-            <button type="button" onClick={handleLogout} style={{ marginLeft: 'auto' }}>
-              Выйти
-            </button>
-          )}
-        </nav>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 20px' }}>
+          <strong style={{ fontSize: '20px' }}>SkillTree</strong>
+          <nav style={{ marginTop: '8px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <Link to="/dashboard">Личный кабинет</Link>
+            <Link to="/my-courses">Мои курсы</Link>
+            <Link to="/catalog">Каталог курсов</Link>
+            <Link to="/create-course">Создать курс</Link>
+            {authenticated && (
+              <button type="button" onClick={handleLogout} style={{ marginLeft: 'auto' }}>
+                Выйти
+              </button>
+            )}
+          </nav>
+        </div>
       </header>
 
       <main style={{ flex: 1 }}>
-        <Outlet />
+        <div className="content-container">
+          <Outlet />
+        </div>
       </main>
 
       <footer style={{ borderTop: '1px solid #ddd', padding: '12px 16px', textAlign: 'center' }}>
-        © SkillTree
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          © SkillTree
+        </div>
       </footer>
     </div>
   )
