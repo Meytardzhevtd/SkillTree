@@ -1,6 +1,6 @@
 #!/bin/bash
 
-OUTPUT_FILE="context_for_ai.txt"
+OUTPUT_FILE="context_frontend.txt"
 
 > "$OUTPUT_FILE"
 
