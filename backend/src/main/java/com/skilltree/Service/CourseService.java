@@ -13,6 +13,8 @@ import com.skilltree.repository.ModuleRepository;
 import com.skilltree.repository.RolesRepository;
 import com.skilltree.repository.TaskRepository;
 import com.skilltree.repository.UserRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
