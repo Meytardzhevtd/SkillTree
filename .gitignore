@@ -34,3 +34,4 @@ yarn-error.log*
 uploads/
 
 context_for_ai.txt
+context_frontend.txt
