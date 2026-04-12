@@ -9,7 +9,7 @@ import com.skilltree.model.Courses;
  */
 
 public record CourseSimpleDto(Long courseId, String title, String description) {
-	public CourseSimpleDto(Courses courses) {
-		this(courses.getId(), courses.getName(), courses.getDescription());
+	public CourseSimpleDto(Courses course) {
+		this(course.getId(), course.getName(), course.getDescription());
 	}
 }

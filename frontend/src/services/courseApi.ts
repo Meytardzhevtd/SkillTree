@@ -42,11 +42,7 @@ export const deleteModule = async (moduleId: number) => {
 };
 
 export const createTask = async (moduleId: number, taskTypeId: number, content: any) => {
-  const res = await api.post('/tasks', {
-    taskTypeId: taskTypeId,
-    moduleId: moduleId,
-    content: content
-  });
+  const res = await api.post('/tasks', { taskTypeId, moduleId, content });
   return res.data;
 };
 
@@ -60,8 +56,16 @@ export const getModulesByCourseId = async (courseId: number) => {
   return res.data;
 };
 
-export const getTasksByModuleId = async (moduleId: number) => {
-  const res = await api.get(`/tasks?moduleId=${moduleId}`);
+export const getTasksByModuleId = async (moduleId: number, progressModuleId?: number) => {
+  const url = progressModuleId
+    ? `/tasks?moduleId=${moduleId}&progressModuleId=${progressModuleId}`
+    : `/tasks?moduleId=${moduleId}`;
+  const res = await api.get(url);
+  return res.data;
+};
+
+export const getTaskById = async (taskId: number) => {
+  const res = await api.get(`/tasks/${taskId}`);
   return res.data;
 };
 
@@ -88,4 +92,29 @@ export const getMyTakenCourses = async () => {
 export const getMyCoursesByRole = async (role: string) => {
   const res = await api.get(`/course/my/${role}`);
   return res.data;
+};
+
+export const getMyRoleInCourse = async (courseId: number): Promise<string> => {
+  const res = await api.get(`/course/${courseId}/my-role`);
+  return res.data.role;
+};
+
+export const startModule = async (moduleId: number, takenCourseId: number) => {
+  const res = await api.post(`/module/${moduleId}/start?takenCourseId=${takenCourseId}`);
+  return res.data as { progressModuleId: number; progress: number };
+};
+
+export const submitAnswer = async (
+  taskId: number,
+  progressModuleId: number,
+  answer: number | number[]
+) => {
+  const res = await api.post(`/tasks/${taskId}/submit`, { progressModuleId, answer });
+  return res.data as {
+    correct: boolean;
+    alreadySolved: boolean;
+    message: string;
+    moduleProgress: number;
+    tasks: { taskId: number; isCompleted: boolean }[];
+  };
 };

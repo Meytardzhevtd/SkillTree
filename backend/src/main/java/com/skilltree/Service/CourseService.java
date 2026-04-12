@@ -2,7 +2,7 @@ package com.skilltree.Service;
 
 import com.skilltree.dto.courses.CourseDto;
 import com.skilltree.dto.courses.CourseSimpleDto;
-import com.skilltree.dto.module.ModuleDto;
+import com.skilltree.exception.CourseNotFoundException;
 import com.skilltree.exception.UserNotFoundException;
 import com.skilltree.model.Courses;
 import com.skilltree.model.Roles;
@@ -16,17 +16,16 @@ import com.skilltree.repository.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import jakarta.transaction.Transactional;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 public class CourseService {
 
 	private final CourseRepository courseRepository;
@@ -45,9 +44,9 @@ public class CourseService {
 		this.rolesRepository = rolesRepository;
 	}
 
+	@Transactional
 	public CourseDto createCourse(CreateCourseRequest request) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
 		if (auth == null || !auth.isAuthenticated()) {
 			throw new RuntimeException("User not authenticated");
 		}
@@ -57,45 +56,35 @@ public class CourseService {
 		Courses course = new Courses();
 		course.setName(request.getName());
 		course.setDescription(request.getDescription());
-
 		Courses savedCourse = courseRepository.save(course);
 
 		Users user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new UserNotFoundException(1L));
 
 		Roles role = new Roles();
-
 		role.setCourse_role("admin");
 		role.setCourse(savedCourse);
 		role.setUser(user);
-
-		Roles savedRole = rolesRepository.save(role);
+		rolesRepository.save(role);
 
 		return new CourseDto(savedCourse);
-
 	}
 
-	@Transactional
 	public List<CourseDto> getAll() {
-		return courseRepository.findAll().stream().map((course) -> new CourseDto(course)).toList();
+		return courseRepository.findAll().stream().map(CourseDto::new).toList();
 	}
 
-	@Transactional
 	public List<CourseSimpleDto> getAllCourseSimpleDto() {
-		return courseRepository.findAll().stream().map(course -> new CourseSimpleDto(course.getId(),
-				course.getName(), course.getDescription())).collect(Collectors.toList());
+		return courseRepository.findAll().stream().map(CourseSimpleDto::new)
+				.collect(Collectors.toList());
 	}
 
-	@Transactional
 	public CourseDto getCourseDtoById(Long id) {
-		Optional<Courses> course = courseRepository.findById(id);
-		if (course.isEmpty()) {
-			throw new RuntimeException("Course not found");
-		}
-		return new CourseDto(course.get());
+		Courses course = courseRepository.findById(id)
+				.orElseThrow(() -> new CourseNotFoundException(id));
+		return new CourseDto(course);
 	}
 
-	@Transactional
 	public List<CourseSimpleDto> getCoursesByUserAndRole(String role) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if (auth == null || !auth.isAuthenticated()) {
@@ -103,19 +92,34 @@ public class CourseService {
 		}
 		String email = auth.getName();
 		Users user = userRepository.findByEmail(email)
-				.orElseThrow(() -> new RuntimeException("User not found"));
+				.orElseThrow(() -> new UserNotFoundException(1L));
 		return courseRepository.findByUserIdAndRole(user.getId(), role).stream()
-				.map((course) -> new CourseSimpleDto(course)).collect(Collectors.toList());
+				.map(CourseSimpleDto::new).collect(Collectors.toList());
 	}
 
-	@Transactional
 	public List<CourseSimpleDto> getCoursesByUserId(Long userId) {
 		Users user = userRepository.findById(userId)
 				.orElseThrow(() -> new UserNotFoundException(userId));
-		return courseRepository.findByUser(user).stream()
-				.map(course -> new CourseSimpleDto(course.getId(), course.getName(),
-						course.getDescription()))
+		return courseRepository.findByUser(user).stream().map(CourseSimpleDto::new)
 				.collect(Collectors.toList());
 	}
 
+	public String getMyRoleInCourse(Long courseId) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth == null || !auth.isAuthenticated()) {
+			return null;
+		}
+		String email = auth.getName();
+		Users user = userRepository.findByEmail(email).orElse(null);
+		if (user == null)
+			return null;
+
+		if (rolesRepository.existsByCourseIdAndUserIdAndRole(courseId, user.getId(), "admin")) {
+			return "admin";
+		}
+		if (rolesRepository.existsByCourseIdAndUserIdAndRole(courseId, user.getId(), "student")) {
+			return "student";
+		}
+		return null;
+	}
 }

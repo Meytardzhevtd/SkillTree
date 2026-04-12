@@ -1,5 +1,6 @@
 package com.skilltree.model;
 
+import com.skilltree.dto.content.TaskContent;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +12,6 @@ import org.hibernate.type.SqlTypes;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Entity
 @Table(name = "Tasks")
@@ -38,9 +38,8 @@ public class Task {
 
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "content", columnDefinition = "JSONB", nullable = false)
-	private Map<String, Object> content;
+	private TaskContent content;
 
 	@OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<UserAnswers> user_answers = new ArrayList<>();
-
 }

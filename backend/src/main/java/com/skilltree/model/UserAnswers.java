@@ -37,4 +37,7 @@ public class UserAnswers {
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "answer", columnDefinition = "JSONB", nullable = false)
 	private Map<String, Object> answer;
+
+	@Column(name = "is_correct", nullable = false)
+	private boolean isCorrect;
 }

@@ -1,9 +1,9 @@
 package com.skilltree.dto.tasks;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.skilltree.dto.content.TaskContent;
 import com.skilltree.model.Task;
 import lombok.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Getter
 @Setter
@@ -15,35 +15,22 @@ public class TaskResponse {
 	private Long moduleId;
 	private TaskContent content;
 
+	@JsonProperty("isCompleted")
+	private boolean isCompleted;
+
 	public static TaskResponse of(Task task) {
 		if (task == null)
 			return null;
-
 		Long typeId = task.getTask_type() != null ? task.getTask_type().getId() : null;
 		Long modId = task.getModule() != null ? task.getModule().getId() : null;
-
-		ObjectMapper mapper = new ObjectMapper();
-		TaskContent contentDto = null;
-
-		if (task.getContent() != null && typeId != null) {
-			String taskTypeName = task.getTask_type().getName();
-			Class<? extends TaskContent> targetClass = getContentClassByTypeName(taskTypeName);
-			if (targetClass != null) {
-				contentDto = mapper.convertValue(task.getContent(), targetClass);
-			}
-		}
-
-		return new TaskResponse(task.getId(), typeId, modId, contentDto);
+		return new TaskResponse(task.getId(), typeId, modId, task.getContent(), false);
 	}
 
-	private static Class<? extends TaskContent> getContentClassByTypeName(String typeName) {
-		switch (typeName) {
-			case "ONE_POSSIBLE_ANSWER" :
-				return com.skilltree.dto.content.OneAnswerTaskContent.class;
-			case "MULTIPLE" :
-				return com.skilltree.dto.content.MultipleAnswerTaskContent.class;
-			default :
-				return null;
-		}
+	public static TaskResponse of(Task task, boolean isCompleted) {
+		if (task == null)
+			return null;
+		Long typeId = task.getTask_type() != null ? task.getTask_type().getId() : null;
+		Long modId = task.getModule() != null ? task.getModule().getId() : null;
+		return new TaskResponse(task.getId(), typeId, modId, task.getContent(), isCompleted);
 	}
 }
