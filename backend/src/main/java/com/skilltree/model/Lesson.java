@@ -10,16 +10,16 @@ import lombok.*;
 @Getter
 @Setter
 public class Lesson {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @Column(name = "module_id")
-    private Long moduleId;
+	@Column(name = "module_id")
+	private Long moduleId;
 
-    @Column(name = "title")
-    private String title;
+	@Column(name = "title")
+	private String title;
 
-    @Column(name = "content")
-    private String content;
+	@Column(name = "content", columnDefinition = "TEXT")
+	private String content;
 }
