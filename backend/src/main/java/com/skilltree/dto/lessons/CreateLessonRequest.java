@@ -8,10 +8,10 @@ import lombok.*;
 @Getter
 @Setter
 public class CreateLessonRequest {
-    @NotNull
-    private Long moduleId;
-    @NotBlank
-    private String title;
-    @NotBlank
-    private String content;
+	@NotNull
+	private Long moduleId;
+	@NotBlank
+	private String title;
+	@NotBlank
+	private String content;
 }

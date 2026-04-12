@@ -19,29 +19,29 @@ import com.skilltree.repository.LessonRepository;
 @RestController
 @RequestMapping("/api/lessons")
 public class LessonController {
-    private final LessonService lessonService;
+	private final LessonService lessonService;
 
-    public LessonController(LessonService lessonService) {
-        this.lessonService = lessonService;
-    }
+	public LessonController(LessonService lessonService) {
+		this.lessonService = lessonService;
+	}
 
-    @PostMapping
-    public ResponseEntity<LessonResponse> create(@RequestBody CreateLessonRequest request) {
-        return ResponseEntity.ok(lessonService.createLesson(request));
-    }
+	@PostMapping
+	public ResponseEntity<LessonResponse> create(@RequestBody CreateLessonRequest request) {
+		return ResponseEntity.ok(lessonService.createLesson(request));
+	}
 
-    @GetMapping("/{id}")
-    public ResponseEntity<LessonResponse> get(@PathVariable Long id) {
-        return ResponseEntity.ok(lessonService.get(id));
-    }
+	@GetMapping("/{id}")
+	public ResponseEntity<LessonResponse> get(@PathVariable Long id) {
+		return ResponseEntity.ok(lessonService.get(id));
+	}
 
-    @GetMapping("/module/{moduleId}")
-    public ResponseEntity<List<LessonResponse>> getAllByModuleId(@PathVariable Long moduleId) {
-        return ResponseEntity.ok(lessonService.getLessons(moduleId));
-    }
+	@GetMapping("/module/{moduleId}")
+	public ResponseEntity<List<LessonResponse>> getAllByModuleId(@PathVariable Long moduleId) {
+		return ResponseEntity.ok(lessonService.getLessons(moduleId));
+	}
 
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        lessonService.delete(id);
-    }
+	@DeleteMapping("/{id}")
+	public void delete(@PathVariable Long id) {
+		lessonService.delete(id);
+	}
 }

@@ -11,6 +11,7 @@ import CoursePage from './pages/CoursePage'
 import ModulePage from './pages/ModulePage'
 import CatalogPage from './pages/CatalogPage'
 import TaskPage from './pages/TaskPage'
+import LessonPage from './pages/LessonPage'
 
 function App() {
   return (
@@ -29,6 +30,8 @@ function App() {
           <Route path="/course/:courseId" element={<CoursePage />} />
           <Route path="/module/:moduleId" element={<ModulePage />} />
           <Route path="/task/:taskId" element={<TaskPage />} />
+          <Route path="/lesson/:lessonId" element={<LessonPage />} />
+          
         </Route>
       </Route>
 

@@ -7,7 +7,8 @@ import lombok.*;
 @Getter
 @Setter
 public class LessonResponse {
-    private Long id;
-    private String title;
-    private String content;
+	private Long id;
+	private String title;
+	private String content;
+	private Long moduleId;
 }
