@@ -38,6 +38,11 @@ public class LessonService {
                 .collect(Collectors.toList());
     }
 
+    public LessonResponse get(Long id) {
+        Lesson lesson = lessonRepository.findById(id).orElseThrow(() -> new RuntimeException("TODO"));
+        return new LessonResponse(lesson.getId(), lesson.getTitle(), lesson.getContent());
+    }
+
     @Transactional
     public void delete(Long lessonId) {
         Optional<Lesson> oLesson = lessonRepository.findById(lessonId);

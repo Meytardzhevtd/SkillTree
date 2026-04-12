@@ -14,7 +14,6 @@ public class Lesson {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
     @Column(name = "module_id")
     private Long moduleId;
 

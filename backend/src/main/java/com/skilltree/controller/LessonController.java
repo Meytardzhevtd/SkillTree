@@ -3,6 +3,7 @@ package com.skilltree.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +17,7 @@ import com.skilltree.dto.lessons.LessonResponse;
 import com.skilltree.repository.LessonRepository;
 
 @RestController
-@RequestMapping("api/lessons")
+@RequestMapping("/api/lessons")
 public class LessonController {
     private final LessonService lessonService;
 
@@ -31,11 +32,16 @@ public class LessonController {
 
     @GetMapping("/{id}")
     public ResponseEntity<LessonResponse> get(@PathVariable Long id) {
-        return null;
+        return ResponseEntity.ok(lessonService.get(id));
     }
 
-    @GetMapping("all-lessons-by-module/{moduleId}")
+    @GetMapping("/module/{moduleId}")
     public ResponseEntity<List<LessonResponse>> getAllByModuleId(@PathVariable Long moduleId) {
-        return null;
+        return ResponseEntity.ok(lessonService.getLessons(moduleId));
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        lessonService.delete(id);
     }
 }
