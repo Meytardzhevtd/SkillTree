@@ -1,7 +1,7 @@
 package com.skilltree.controller;
 
 import com.skilltree.Service.DependenciesService;
-import com.skilltree.dto.module.ModuleSimpleDto;
+import com.skilltree.dto.dependencies.DependencyDto;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -23,7 +23,7 @@ public class DependenciesController {
 	}
 
 	@GetMapping("graph/{takenCourse}/{idModuleRoot}")
-	public HashMap<Long, List<ModuleSimpleDto>> getGraph(@PathVariable Long takenCourse,
+	public HashMap<Long, List<DependencyDto>> getGraphByModule(@PathVariable Long takenCourse,
 			@PathVariable Long idModuleRoot) {
 		return dependenciesService.getGraphOfModules(takenCourse, idModuleRoot);
 	}
