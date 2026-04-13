@@ -140,4 +140,11 @@ public class DependenciesService {
 		dfs2(takenCourseId, root, newGraph, graph);
 		return newGraph;
 	}
+
+	public void deleteDependence(Long idDependence) {
+		Dependencies dependence = dependencyRepository.findById(idDependence)
+				.orElseThrow(() -> new RuntimeException("Такой зависимости нет"));
+		dependencyRepository.delete(dependence);
+	}
+
 }
