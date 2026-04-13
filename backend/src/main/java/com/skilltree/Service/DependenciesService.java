@@ -1,6 +1,6 @@
 package com.skilltree.Service;
 
-import com.skilltree.dto.module.ModuleSimpleDto;
+import com.skilltree.dto.dependencies.DependencyDto;
 import com.skilltree.model.Dependencies;
 import com.skilltree.model.Module;
 import com.skilltree.model.ProgressModule;
@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -33,7 +34,8 @@ public class DependenciesService {
 		// граф должен быть деревом, поэтому без проверки на то, что
 		// снова зайдем в одну и ту же вершину во время обхода
 		List<Long> list = dependencyRepository.findByModuleId(node).stream()
-				.map(dependencies -> dependencies.getBlock_module().getId()).toList();
+				.map(dependencies -> dependencies.getBlock_module().getId())
+				.collect(Collectors.toList());
 		graph.put(node, list);
 		for (Long next : list) {
 			dfs(next, graph);
@@ -118,25 +120,27 @@ public class DependenciesService {
 		return true;
 	}
 
-	private void dfs2(Long takenCourseId, Long node, HashMap<Long, List<ModuleSimpleDto>> newGraph,
+	private void dfs2(Long takenCourseId, Long node, HashMap<Long, List<DependencyDto>> newGraph,
 			HashMap<Long, List<Long>> graph) {
 		if (graph.get(node) != null) {
 			for (Long next : graph.get(node)) {
 				dfs2(takenCourseId, next, newGraph, graph);
 			}
-			List<ModuleSimpleDto> list = graph.get(node).stream().map(moduleId -> {
+			List<DependencyDto> list = graph.get(node).stream().map(moduleId -> {
 				Module module = moduleRepository.findById(moduleId).orElseThrow(
 						() -> new RuntimeException("Модуль с id " + moduleId + " не найден"));
-				return new ModuleSimpleDto(moduleId, module.getName(),
+				Dependencies dependencies = dependencyRepository
+						.findByModuleIdAndBlockModuleId(node, moduleId);
+				return new DependencyDto(dependencies.getId(), moduleId, module.getName(),
 						checkIsOpen(takenCourseId, moduleId));
 			}).toList();
 			newGraph.put(node, list);
 		}
 	}
 
-	public HashMap<Long, List<ModuleSimpleDto>> getGraphOfModules(Long takenCourseId, Long root) {
+	public HashMap<Long, List<DependencyDto>> getGraphOfModules(Long takenCourseId, Long root) {
 		HashMap<Long, List<Long>> graph = makeGraph(root);
-		HashMap<Long, List<ModuleSimpleDto>> newGraph = new HashMap<>();
+		HashMap<Long, List<DependencyDto>> newGraph = new HashMap<>();
 		dfs2(takenCourseId, root, newGraph, graph);
 		return newGraph;
 	}
