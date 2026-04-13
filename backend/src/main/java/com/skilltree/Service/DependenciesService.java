@@ -2,6 +2,7 @@ package com.skilltree.Service;
 
 import com.skilltree.dto.module.ModuleSimpleDto;
 import com.skilltree.model.Dependencies;
+import com.skilltree.model.Module;
 import com.skilltree.model.ProgressModule;
 import com.skilltree.repository.DependencyRepository;
 import com.skilltree.repository.ModuleRepository;
@@ -96,8 +97,10 @@ public class DependenciesService {
 			return false;
 		}
 		Dependencies dep = new Dependencies();
-		dep.setModule(moduleRepository.getReferenceById(idModuleMain));
-		dep.setBlock_module(moduleRepository.getReferenceById(idModuleDependent));
+		dep.setModule(moduleRepository.findById(idModuleMain).orElseThrow(
+				() -> new RuntimeException("Модуль с id " + idModuleMain + " не найден")));
+		dep.setBlock_module(moduleRepository.findById(idModuleDependent).orElseThrow(
+				() -> new RuntimeException("Модуль с id " + idModuleDependent + " не найден")));
 		dependencyRepository.save(dep);
 		return true;
 	}
@@ -121,11 +124,12 @@ public class DependenciesService {
 			for (Long next : graph.get(node)) {
 				dfs2(takenCourseId, next, newGraph, graph);
 			}
-			List<ModuleSimpleDto> list = graph.get(node).stream()
-					.map(moduleId -> new ModuleSimpleDto(moduleId,
-							moduleRepository.getReferenceById(moduleId).getName(),
-							checkIsOpen(takenCourseId, moduleId)))
-					.toList();
+			List<ModuleSimpleDto> list = graph.get(node).stream().map(moduleId -> {
+				Module module = moduleRepository.findById(moduleId).orElseThrow(
+						() -> new RuntimeException("Модуль с id " + moduleId + " не найден"));
+				return new ModuleSimpleDto(moduleId, module.getName(),
+						checkIsOpen(takenCourseId, moduleId));
+			}).toList();
 			newGraph.put(node, list);
 		}
 	}
