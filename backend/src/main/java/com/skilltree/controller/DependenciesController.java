@@ -27,4 +27,9 @@ public class DependenciesController {
 			@PathVariable Long idModuleRoot) {
 		return dependenciesService.getGraphOfModules(takenCourse, idModuleRoot);
 	}
+
+	@DeleteMapping("/{id}")
+	public void delete(@PathVariable Long id) {
+		dependenciesService.deleteDependence(id);
+	}
 }
