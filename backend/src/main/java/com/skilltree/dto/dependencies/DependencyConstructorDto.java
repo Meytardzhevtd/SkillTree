@@ -3,17 +3,14 @@ package com.skilltree.dto.dependencies;
 import lombok.Data;
 
 @Data
-public class DependencyDto {
+public class DependencyConstructorDto {
 	private Long id;
 	private Long dependentModuleId;
 	private String dependentModuleName;
-	private boolean isOpen;
 
-	public DependencyDto(Long id, Long dependentModuleId, String dependentModuleName,
-			boolean isOpen) {
+	public DependencyConstructorDto(Long id, Long dependentModuleId, String dependentModuleName) {
 		this.id = id;
 		this.dependentModuleId = dependentModuleId;
 		this.dependentModuleName = dependentModuleName;
-		this.isOpen = isOpen;
 	}
 }
