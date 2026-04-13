@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { getCourseById, createModule, deleteModule, getModulesByCourseId, getMyRoleInCourse, getMyTakenCourses } from '../services/courseApi';
+import {
+    getCourseById,
+    createModule,
+    deleteModule,
+    getModulesByCourseId,
+    getMyRoleInCourse,
+    getMyTakenCourses,
+    getAllCourseDependencies,
+    createDependency,
+    deleteDependency,
+} from '../services/courseApi';
+import DependencyGraph from '../components/DependencyGraph';
 
 interface Module {
     moduleId: number;
@@ -12,6 +23,14 @@ interface ModuleProgress {
     moduleId: number;
     moduleName: string;
     progress: number;
+}
+
+interface Dependency {
+    id: number;
+    mainModuleId: number;
+    mainModuleName: string;
+    dependentModuleId: number;
+    dependentModuleName: string;
 }
 
 const CoursePage: React.FC = () => {
@@ -31,6 +50,12 @@ const CoursePage: React.FC = () => {
     const [courseProgress, setCourseProgress] = useState<number | null>(null);
     const [moduleProgresses, setModuleProgresses] = useState<ModuleProgress[]>([]);
 
+    const [dependencies, setDependencies] = useState<Dependency[]>([]);
+    const [selectedMain, setSelectedMain] = useState<number>(0);
+    const [selectedDependent, setSelectedDependent] = useState<number>(0);
+    const [loadingDeps, setLoadingDeps] = useState(false);
+    const [viewMode, setViewMode] = useState<'list' | 'graph'>('list'); // список или граф
+
     useEffect(() => {
         loadCourseAndModules();
     }, [courseId]);
@@ -47,7 +72,7 @@ const CoursePage: React.FC = () => {
             ]);
 
             setCourseName(course.name);
-            setCourseDescription(course.description)
+            setCourseDescription(course.description);
             setModules(modulesData || []);
             setIsAdmin(role === 'admin');
 
@@ -59,11 +84,43 @@ const CoursePage: React.FC = () => {
                     setModuleProgresses(tc.moduleProgresses || []);
                 }
             }
+
+            // Если администратор – загружаем зависимости курса
+            if (role === 'admin') {
+                await loadDependencies();
+            }
         } catch (err: any) {
             console.error(err);
             setError('Ошибка загрузки курса');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadDependencies = async () => {
+        setLoadingDeps(true);
+        try {
+            const graph = await getAllCourseDependencies(Number(courseId));
+            // graph: HashMap<parentId, DependencyConstructorDto[]>
+            const flatDeps: Dependency[] = [];
+            for (const [parentId, children] of Object.entries(graph)) {
+                const parentModule = modules.find(m => m.moduleId === Number(parentId));
+                if (!parentModule) continue;
+                for (const child of children as any[]) {
+                    flatDeps.push({
+                        id: child.id,
+                        mainModuleId: Number(parentId),
+                        mainModuleName: parentModule.name,
+                        dependentModuleId: child.dependentModuleId,
+                        dependentModuleName: child.dependentModuleName,
+                    });
+                }
+            }
+            setDependencies(flatDeps);
+        } catch (err) {
+            console.error('Ошибка загрузки зависимостей', err);
+        } finally {
+            setLoadingDeps(false);
         }
     };
 
@@ -73,7 +130,10 @@ const CoursePage: React.FC = () => {
     };
 
     const handleCreateModule = async () => {
-        if (!newModuleName.trim()) { alert('Введите название модуля'); return; }
+        if (!newModuleName.trim()) {
+            alert('Введите название модуля');
+            return;
+        }
         try {
             setCreating(true);
             await createModule(Number(courseId), newModuleName, false);
@@ -104,6 +164,39 @@ const CoursePage: React.FC = () => {
         navigate(`/module/${moduleId}?${params.toString()}`);
     };
 
+    const handleAddDependency = async () => {
+        if (selectedMain === selectedDependent) {
+            alert('Модуль не может зависеть от самого себя');
+            return;
+        }
+        if (selectedMain === 0 || selectedDependent === 0) {
+            alert('Выберите оба модуля');
+            return;
+        }
+        try {
+            await createDependency(selectedMain, selectedDependent);
+            alert('Зависимость добавлена');
+            setSelectedMain(0);
+            setSelectedDependent(0);
+            await loadDependencies();
+        } catch (err: any) {
+            alert(err.response?.data || 'Ошибка создания зависимости');
+        }
+    };
+
+    const handleDeleteDependency = async (depId: number) => {
+        if (!confirm('Удалить зависимость?')) return;
+        try {
+            await deleteDependency(depId);
+            await loadDependencies();
+        } catch (err) {
+            alert('Ошибка удаления зависимости');
+        }
+    };
+
+    const graphModules = modules.map(m => ({ id: m.moduleId, name: m.name }));
+    const graphEdges = dependencies.map(d => ({ id: d.id, from: d.mainModuleId, to: d.dependentModuleId }));
+
     if (loading) return <div style={{ padding: '20px' }}>Загрузка...</div>;
 
     if (error) {
@@ -116,7 +209,7 @@ const CoursePage: React.FC = () => {
     }
 
     return (
-        <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+        <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
             <button onClick={() => navigate('/my-courses')} style={{ marginBottom: '16px' }}>
                 ← Назад к курсам
             </button>
@@ -135,12 +228,14 @@ const CoursePage: React.FC = () => {
                         <span style={{ fontSize: '14px', color: '#555' }}>{courseProgress.toFixed(0)}%</span>
                     </div>
                     <div style={{ background: '#e9ecef', borderRadius: '4px', height: '10px', overflow: 'hidden' }}>
-                        <div style={{
-                            background: courseProgress === 100 ? '#28a745' : '#007bff',
-                            height: '100%',
-                            width: `${courseProgress}%`,
-                            transition: 'width 0.3s'
-                        }} />
+                        <div
+                            style={{
+                                background: courseProgress === 100 ? '#28a745' : '#007bff',
+                                height: '100%',
+                                width: `${courseProgress}%`,
+                                transition: 'width 0.3s',
+                            }}
+                        />
                     </div>
                 </div>
             )}
@@ -187,42 +282,63 @@ const CoursePage: React.FC = () => {
                                     cursor: 'pointer',
                                     transition: 'box-shadow 0.2s',
                                 }}
-                                onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'}
-                                onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+                                onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)')}
+                                onMouseLeave={(e) => (e.currentTarget.style.boxShadow = 'none')}
                             >
                                 <div onClick={() => handleModuleClick(module.moduleId)} style={{ flex: 1 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <strong style={{ fontSize: '16px' }}>{module.name}</strong>
                                         {!module.isOpen && <span style={{ color: '#888' }}>🔒</span>}
                                         {!isAdmin && progress === 100 && (
-                                            <span style={{ fontSize: '12px', background: '#28a745', color: 'white', padding: '2px 8px', borderRadius: '4px' }}>
-                                                ✓ Завершён
-                                            </span>
+                                            <span
+                                                style={{
+                                                    fontSize: '12px',
+                                                    background: '#28a745',
+                                                    color: 'white',
+                                                    padding: '2px 8px',
+                                                    borderRadius: '4px',
+                                                }}
+                                            >
+                        ✓ Завершён
+                      </span>
                                         )}
                                     </div>
                                     {!isAdmin && progress !== null && (
                                         <div style={{ marginTop: '8px' }}>
                                             <div style={{ background: '#e9ecef', borderRadius: '4px', height: '6px', overflow: 'hidden' }}>
-                                                <div style={{
-                                                    background: progress === 100 ? '#28a745' : '#007bff',
-                                                    height: '100%',
-                                                    width: `${progress}%`,
-                                                    transition: 'width 0.3s'
-                                                }} />
+                                                <div
+                                                    style={{
+                                                        background: progress === 100 ? '#28a745' : '#007bff',
+                                                        height: '100%',
+                                                        width: `${progress}%`,
+                                                        transition: 'width 0.3s',
+                                                    }}
+                                                />
                                             </div>
                                             <span style={{ fontSize: '12px', color: '#888', marginTop: '2px', display: 'block' }}>
-                                                {progress.toFixed(0)}%
-                                            </span>
+                        {progress.toFixed(0)}%
+                      </span>
                                         </div>
                                     )}
                                 </div>
 
                                 {isAdmin && (
                                     <button
-                                        onClick={(e) => { e.stopPropagation(); handleDeleteModule(module.moduleId); }}
-                                        style={{ background: '#dc3545', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', marginLeft: '12px' }}
-                                        onMouseEnter={(e) => e.currentTarget.style.background = '#c82333'}
-                                        onMouseLeave={(e) => e.currentTarget.style.background = '#dc3545'}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteModule(module.moduleId);
+                                        }}
+                                        style={{
+                                            background: '#dc3545',
+                                            color: 'white',
+                                            border: 'none',
+                                            padding: '6px 12px',
+                                            borderRadius: '4px',
+                                            cursor: 'pointer',
+                                            marginLeft: '12px',
+                                        }}
+                                        onMouseEnter={(e) => (e.currentTarget.style.background = '#c82333')}
+                                        onMouseLeave={(e) => (e.currentTarget.style.background = '#dc3545')}
                                     >
                                         Удалить
                                     </button>
@@ -230,6 +346,143 @@ const CoursePage: React.FC = () => {
                             </div>
                         );
                     })}
+                </div>
+            )}
+
+            {/* Секция управления зависимостями (только для администратора) */}
+            {isAdmin && (
+                <div style={{ marginTop: '32px', borderTop: '2px solid #ddd', paddingTop: '20px' }}>
+                    <h2>Управление зависимостями модулей</h2>
+
+                    {/* Форма добавления зависимости */}
+                    <div style={{ marginBottom: '24px', padding: '16px', border: '1px solid #ddd', borderRadius: '8px' }}>
+                        <h3>Добавить зависимость</h3>
+                        <p style={{ fontSize: '14px', color: '#666' }}>
+                            Модуль <strong>«зависит от»</strong> → модуль (блокирующий)
+                        </p>
+                        <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                            <div style={{ flex: 1 }}>
+                                <label>Модуль, который зависит:</label>
+                                <select
+                                    value={selectedMain}
+                                    onChange={(e) => setSelectedMain(Number(e.target.value))}
+                                    style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+                                >
+                                    <option value={0}>-- выберите --</option>
+                                    {modules.map((m) => (
+                                        <option key={m.moduleId} value={m.moduleId}>
+                                            {m.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <label>Блокирующий модуль (от которого зависит):</label>
+                                <select
+                                    value={selectedDependent}
+                                    onChange={(e) => setSelectedDependent(Number(e.target.value))}
+                                    style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+                                >
+                                    <option value={0}>-- выберите --</option>
+                                    {modules.map((m) => (
+                                        <option key={m.moduleId} value={m.moduleId}>
+                                            {m.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <button onClick={handleAddDependency}>Добавить</button>
+                        </div>
+                    </div>
+
+                    {/* Переключатель режима просмотра */}
+                    <div style={{ marginBottom: '16px' }}>
+                        <button
+                            onClick={() => setViewMode('list')}
+                            style={{
+                                background: viewMode === 'list' ? '#007bff' : '#f0f0f0',
+                                color: viewMode === 'list' ? 'white' : '#333',
+                                marginRight: '8px',
+                                padding: '6px 12px',
+                                borderRadius: '4px',
+                                border: 'none',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            Список зависимостей
+                        </button>
+                        <button
+                            onClick={() => setViewMode('graph')}
+                            style={{
+                                background: viewMode === 'graph' ? '#007bff' : '#f0f0f0',
+                                color: viewMode === 'graph' ? 'white' : '#333',
+                                padding: '6px 12px',
+                                borderRadius: '4px',
+                                border: 'none',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            Граф зависимостей
+                        </button>
+                    </div>
+
+                    {/* Режим: список */}
+                    {viewMode === 'list' && (
+                        <>
+                            <h3>Существующие зависимости</h3>
+                            {loadingDeps && <p>Загрузка...</p>}
+                            {!loadingDeps && dependencies.length === 0 && <p>Нет зависимостей</p>}
+                            {!loadingDeps && dependencies.length > 0 && (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    {dependencies.map((dep) => (
+                                        <div
+                                            key={dep.id}
+                                            style={{
+                                                border: '1px solid #ddd',
+                                                borderRadius: '6px',
+                                                padding: '12px',
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                            }}
+                                        >
+                      <span>
+                        <strong>{dep.mainModuleName}</strong> → зависит от → <strong>{dep.dependentModuleName}</strong>
+                      </span>
+                                            <button
+                                                onClick={() => handleDeleteDependency(dep.id)}
+                                                style={{
+                                                    background: '#dc3545',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    padding: '4px 12px',
+                                                    borderRadius: '4px',
+                                                }}
+                                            >
+                                                Удалить
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {/* Режим: граф */}
+                    {viewMode === 'graph' && (
+                        <>
+                            <h3>Граф зависимостей</h3>
+                            {loadingDeps && <p>Загрузка...</p>}
+                            {!loadingDeps && modules.length > 0 && (
+                                <DependencyGraph modules={graphModules} dependencies={graphEdges} />
+                            )}
+                            {!loadingDeps && modules.length === 0 && <p>Нет модулей для отображения графа</p>}
+                        </>
+                    )}
+
+                    <button onClick={loadDependencies} style={{ marginTop: '16px' }}>
+                        Обновить данные
+                    </button>
                 </div>
             )}
         </div>
