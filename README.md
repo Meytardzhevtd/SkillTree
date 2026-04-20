@@ -149,9 +149,9 @@ mvn test
 
 | Имя | GitHub |
 |---|---|
-| Матвей Баженов | @MatveyBazhenov |
-| Тимофей Мейтарджев | @Meytardzhevtd |
-| Андрей Ким | @arkaoi |
+| Матвей Баженов | [@MatveyBazhenov](https://github.com/MatveyBazhenov) | 
+| Тимофей Мейтарджев | [@Meytardzhevtd](https://github.com/Meytardzhevtd) |
+| Андрей Ким | [@arkaoi](https://github.com/arkaoi) | 
 
 ---
 
