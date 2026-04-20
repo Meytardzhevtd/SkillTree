@@ -79,12 +79,6 @@ npm install
 npm run dev
 ```
 
-| Сервис | Адрес |
-|---|---|
-| Фронтенд | http://localhost:5173 |
-| API бэкенда | http://localhost:8080 |
-| Swagger UI | http://localhost:8080/swagger-ui.html |
-
 ### Переменные окружения
 
 Создайте файл `backend/.env` на основе примера:
