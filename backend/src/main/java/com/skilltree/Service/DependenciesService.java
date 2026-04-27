@@ -3,11 +3,12 @@ package com.skilltree.Service;
 import com.skilltree.dto.dependencies.DependencyConstructorDto;
 import com.skilltree.dto.dependencies.DependencyTakeCourseDto;
 import com.skilltree.model.Dependencies;
-import com.skilltree.model.Module;
 import com.skilltree.model.ProgressModule;
+import com.skilltree.model.TakenCourses;
 import com.skilltree.repository.DependencyRepository;
 import com.skilltree.repository.ModuleRepository;
 import com.skilltree.repository.ProgressModuleRepository;
+import com.skilltree.repository.TakenCoursesRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -22,13 +23,15 @@ public class DependenciesService {
 	private final ModuleRepository moduleRepository;
 	private final DependencyRepository dependencyRepository;
 	private final ProgressModuleRepository progressModuleRepository;
+	private final TakenCoursesRepository takenCoursesRepository;
 
 	public DependenciesService(ModuleRepository moduleRepository,
-			DependencyRepository dependencyRepository,
-			ProgressModuleRepository progressModuleRepository) {
+							   DependencyRepository dependencyRepository,
+							   ProgressModuleRepository progressModuleRepository, TakenCoursesRepository takenCoursesRepository) {
 		this.moduleRepository = moduleRepository;
 		this.dependencyRepository = dependencyRepository;
 		this.progressModuleRepository = progressModuleRepository;
+		this.takenCoursesRepository = takenCoursesRepository;
 	}
 
 	private void dfs(Long node, HashMap<Long, List<Long>> graph) {
@@ -121,31 +124,42 @@ public class DependenciesService {
 		return true;
 	}
 
-	private void dfs2(Long takenCourseId, Long node,
-			HashMap<Long, List<DependencyTakeCourseDto>> newGraph,
-			HashMap<Long, List<Long>> graph) {
-		if (graph.get(node) != null) {
-			for (Long next : graph.get(node)) {
-				dfs2(takenCourseId, next, newGraph, graph);
-			}
-			List<DependencyTakeCourseDto> list = graph.get(node).stream().map(moduleId -> {
-				Module module = moduleRepository.findById(moduleId).orElseThrow(
-						() -> new RuntimeException("Модуль с id " + moduleId + " не найден"));
-				Dependencies dependencies = dependencyRepository
-						.findByModuleIdAndBlockModuleId(node, moduleId);
-				return new DependencyTakeCourseDto(dependencies.getId(), moduleId, module.getName(),
-						checkIsOpen(takenCourseId, moduleId));
-			}).toList();
-			newGraph.put(node, list);
-		}
-	}
+//	private void dfs2(Long takenCourseId, Long node,
+//			HashMap<Long, List<DependencyTakeCourseDto>> newGraph,
+//			HashMap<Long, List<Long>> graph) {
+//		if (graph.get(node) != null) {
+//			for (Long next : graph.get(node)) {
+//				dfs2(takenCourseId, next, newGraph, graph);
+//			}
+//			List<DependencyTakeCourseDto> list = graph.get(node).stream().map(moduleId -> {
+//				Module module = moduleRepository.findById(moduleId).orElseThrow(
+//						() -> new RuntimeException("Модуль с id " + moduleId + " не найден"));
+//				Dependencies dependencies = dependencyRepository
+//						.findByModuleIdAndBlockModuleId(node, moduleId);
+//				return new DependencyTakeCourseDto(dependencies.getId(), moduleId, module.getName(),
+//						checkIsOpen(takenCourseId, moduleId));
+//			}).toList();
+//			newGraph.put(node, list);
+//		}
+//	}
 
-	public HashMap<Long, List<DependencyTakeCourseDto>> getGraphOfModules(Long takenCourseId,
-			Long root) {
-		HashMap<Long, List<Long>> graph = makeGraph(root);
-		HashMap<Long, List<DependencyTakeCourseDto>> newGraph = new HashMap<>();
-		dfs2(takenCourseId, root, newGraph, graph);
-		return newGraph;
+	public HashMap<Long, List<DependencyTakeCourseDto>> getGraphOfModules(Long takenCourseId) {
+		TakenCourses course = takenCoursesRepository.findById(takenCourseId)
+				.orElseThrow(() -> new RuntimeException("не существует такого выбранного курса"));
+		Long courseId = course.getCourse().getId();
+		List<Long> moduleIds = moduleRepository.findByCourseIdOrderById(courseId).stream()
+				.map(module -> module.getId()).toList();
+		HashMap<Long, List<DependencyTakeCourseDto>> graph = new HashMap<>();
+		for (Long id : moduleIds) {
+			List<DependencyTakeCourseDto> deps = dependencyRepository.findByModuleId(id).stream()
+					.map(dependencies -> new DependencyTakeCourseDto(dependencies.getId(),
+							dependencies.getBlock_module().getId(),
+							dependencies.getBlock_module().getName(),
+							checkIsOpen(takenCourseId, dependencies.getBlock_module().getId())))
+					.toList();
+			graph.put(id, deps);
+		}
+		return graph;
 	}
 
 	public void deleteDependence(Long idDependence) {

@@ -23,10 +23,10 @@ public class DependenciesController {
 		return dependenciesService.makeDependent(idModuleMain, idModuleDependent);
 	}
 
-	@GetMapping("graph/{takenCourse}/{idModuleRoot}")
+	@GetMapping("graph/takenCourse/{takenCourse}")
 	public HashMap<Long, List<DependencyTakeCourseDto>> getGraphByModule(
-			@PathVariable Long takenCourse, @PathVariable Long idModuleRoot) {
-		return dependenciesService.getGraphOfModules(takenCourse, idModuleRoot);
+			@PathVariable Long takenCourse) {
+		return dependenciesService.getGraphOfModules(takenCourse);
 	}
 
 	@DeleteMapping("/{id}")
