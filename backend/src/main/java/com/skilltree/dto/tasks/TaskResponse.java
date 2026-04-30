@@ -18,12 +18,15 @@ public class TaskResponse {
 	@JsonProperty("isCompleted")
 	private boolean isCompleted;
 
+	private Integer score;
+
 	public static TaskResponse of(Task task) {
 		if (task == null)
 			return null;
 		Long typeId = task.getTask_type() != null ? task.getTask_type().getId() : null;
 		Long modId = task.getModule() != null ? task.getModule().getId() : null;
-		return new TaskResponse(task.getId(), typeId, modId, task.getContent(), false);
+		return new TaskResponse(task.getId(), typeId, modId, task.getContent(), false,
+				task.getScore());
 	}
 
 	public static TaskResponse of(Task task, boolean isCompleted) {
@@ -31,6 +34,7 @@ public class TaskResponse {
 			return null;
 		Long typeId = task.getTask_type() != null ? task.getTask_type().getId() : null;
 		Long modId = task.getModule() != null ? task.getModule().getId() : null;
-		return new TaskResponse(task.getId(), typeId, modId, task.getContent(), isCompleted);
+		return new TaskResponse(task.getId(), typeId, modId, task.getContent(), isCompleted,
+				task.getScore());
 	}
 }

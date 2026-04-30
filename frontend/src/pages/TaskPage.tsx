@@ -202,11 +202,11 @@ const TaskPage: React.FC = () => {
                 <span style={{ fontSize: '12px', background: '#e9ecef', padding: '2px 8px', borderRadius: '4px', marginBottom: '12px', display: 'inline-block' }}>
                     {task.content.type === 'ONE_POSSIBLE_ANSWER' ? 'Один правильный ответ' : 'Несколько правильных ответов'}
                 </span>
-                {task.score && (
-                    <span style={{ fontSize: '12px', background: '#ffc107', padding: '2px 8px', borderRadius: '4px', marginLeft: '8px', display: 'inline-block' }}>
-                        🎯 {task.score} баллов
-                    </span>
-                )}
+
+                <span style={{ fontSize: '12px', background: '#ffc107', padding: '2px 8px', borderRadius: '4px', marginLeft: '8px', display: 'inline-block' }}>
+                    🎯 {task.score} баллов
+                </span>
+
 
                 <h2 style={{ margin: '12px 0 20px 0', fontSize: '18px', color: '#213547' }}>
                     {task.content.question}
