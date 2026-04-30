@@ -10,6 +10,7 @@ interface TaskDraft {
     options: string[];
     correctIndex: number;
     correctAnswers: number[];
+    score: number;
 }
 
 interface ModuleDraft {
@@ -23,6 +24,7 @@ const emptyTask = (): TaskDraft => ({
     options: ['', ''],
     correctIndex: 0,
     correctAnswers: [],
+    score: 10,
 });
 
 const CreateCoursePage: React.FC = () => {
@@ -97,7 +99,7 @@ const CreateCoursePage: React.FC = () => {
 
         const newModules = modules.map((m, i) => {
             if (i !== activeModuleIdx) return m;
-            return { ...m, tasks: [...m.tasks, { ...taskDraft, options: filtered }] };
+            return { ...m, tasks: [...m.tasks, { ...taskDraft, options: filtered, score: taskDraft.score }] };
         });
         setModules(newModules);
         setTaskDraft(emptyTask());
@@ -130,6 +132,7 @@ const CreateCoursePage: React.FC = () => {
                         type: task.taskType,
                         question: task.question,
                         options: filtered,
+                        score: task.score,
                     };
                     if (task.taskType === 'ONE_POSSIBLE_ANSWER') {
                         content.indexCorrectAnswer = task.correctIndex;
@@ -137,7 +140,7 @@ const CreateCoursePage: React.FC = () => {
                         content.correctAnswers = task.correctAnswers;
                     }
                     const typeId = task.taskType === 'ONE_POSSIBLE_ANSWER' ? 1 : 2;
-                    await createTask(moduleId, typeId, content);
+                    await await createTask(moduleId, typeId, content, task.score);
                 }
             }
 
@@ -246,7 +249,7 @@ const CreateCoursePage: React.FC = () => {
                     </button>
 
                     {activeModuleIdx === mIdx && (
-                        <div style={{ marginTop: '12px', padding: '16px', border: '1px solid #007bff', borderRadius: '8px', background: '#f0f4ff' }}>
+                        <div style={{ marginTop: '12px', padding: '16px', border: '1px solid #007bff', borderRadius: '8px', background: '#f0f4ff', maxHeight: '500px', overflowY: 'auto' }}>
                             <div style={{ marginBottom: '12px' }}>
                                 <label>Тип задачи: </label>
                                 <select
@@ -300,6 +303,18 @@ const CreateCoursePage: React.FC = () => {
                                 <button onClick={handleAddOption} style={{ marginTop: '8px', fontSize: '13px' }}>
                                     + Добавить вариант
                                 </button>
+                            </div>
+
+                            <div style={{ marginBottom: '12px' }}>
+                                <label>Баллы за задачу:</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="100"
+                                    value={taskDraft.score}
+                                    onChange={(e) => setTaskDraft({ ...taskDraft, score: Number(e.target.value) })}
+                                    style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+                                />
                             </div>
 
                             <button

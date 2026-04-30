@@ -21,11 +21,15 @@ public class CreateTaskDto {
 	@NotNull(message = "content is required")
 	private TaskContent content;
 
-	public Task toEntity(TaskTypes type, Module module) {
+	@NotNull
+	private Integer score = 10;
+
+	public Task toEntity(TaskTypes type, Module module, Integer score) {
 		Task t = new Task();
 		t.setTask_type(type);
 		t.setModule(module);
 		t.setContent(this.content);
+		t.setScore(score);
 		return t;
 	}
 }

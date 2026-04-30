@@ -299,8 +299,8 @@ const CoursePage: React.FC = () => {
                                                     borderRadius: '4px',
                                                 }}
                                             >
-                        ✓ Завершён
-                      </span>
+                                                ✓ Завершён
+                                            </span>
                                         )}
                                     </div>
                                     {!isAdmin && progress !== null && (
@@ -316,8 +316,8 @@ const CoursePage: React.FC = () => {
                                                 />
                                             </div>
                                             <span style={{ fontSize: '12px', color: '#888', marginTop: '2px', display: 'block' }}>
-                        {progress.toFixed(0)}%
-                      </span>
+                                                {progress.toFixed(0)}%
+                                            </span>
                                         </div>
                                     )}
                                 </div>
@@ -446,9 +446,9 @@ const CoursePage: React.FC = () => {
                                                 alignItems: 'center',
                                             }}
                                         >
-                      <span>
-                        <strong>{dep.mainModuleName}</strong> → зависит от → <strong>{dep.dependentModuleName}</strong>
-                      </span>
+                                            <span>
+                                                <strong>{dep.mainModuleName}</strong> → зависит от → <strong>{dep.dependentModuleName}</strong>
+                                            </span>
                                             <button
                                                 onClick={() => handleDeleteDependency(dep.id)}
                                                 style={{

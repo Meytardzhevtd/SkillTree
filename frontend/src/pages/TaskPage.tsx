@@ -14,6 +14,7 @@ interface Task {
     id: number;
     taskTypeId: number;
     moduleId: number;
+    score: number;
     content: TaskContent;
 }
 
@@ -201,6 +202,11 @@ const TaskPage: React.FC = () => {
                 <span style={{ fontSize: '12px', background: '#e9ecef', padding: '2px 8px', borderRadius: '4px', marginBottom: '12px', display: 'inline-block' }}>
                     {task.content.type === 'ONE_POSSIBLE_ANSWER' ? 'Один правильный ответ' : 'Несколько правильных ответов'}
                 </span>
+                {task.score && (
+                    <span style={{ fontSize: '12px', background: '#ffc107', padding: '2px 8px', borderRadius: '4px', marginLeft: '8px', display: 'inline-block' }}>
+                        🎯 {task.score} баллов
+                    </span>
+                )}
 
                 <h2 style={{ margin: '12px 0 20px 0', fontSize: '18px', color: '#213547' }}>
                     {task.content.question}
@@ -234,7 +240,7 @@ const TaskPage: React.FC = () => {
                                 }}
                                 style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', border: `2px solid ${borderColor}`, borderRadius: '8px', cursor: result ? 'default' : 'pointer', background, transition: 'border-color 0.2s, background 0.2s' }}
                             >
-                                <input type={task.content.type === 'ONE_POSSIBLE_ANSWER' ? 'radio' : 'checkbox'} checked={isSelected} onChange={() => {}} style={{ pointerEvents: 'none' }} />
+                                <input type={task.content.type === 'ONE_POSSIBLE_ANSWER' ? 'radio' : 'checkbox'} checked={isSelected} onChange={() => { }} style={{ pointerEvents: 'none' }} />
                                 <span style={{ color: '#213547' }}>{option}</span>
                             </div>
                         );

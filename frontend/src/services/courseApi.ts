@@ -41,8 +41,8 @@ export const deleteModule = async (moduleId: number) => {
   return res.data;
 };
 
-export const createTask = async (moduleId: number, taskTypeId: number, content: any) => {
-  const res = await api.post('/tasks', { taskTypeId, moduleId, content });
+export const createTask = async (moduleId: number, taskTypeId: number, content: any, score: number = 10) => {
+  const res = await api.post('/tasks', { taskTypeId, moduleId, content, score });
   return res.data;
 };
 
