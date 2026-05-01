@@ -29,14 +29,17 @@ public class TaskSubmissionService {
 	private final ProgressModuleRepository progressModuleRepository;
 	private final TakenCoursesRepository takenCoursesRepository;
 
+	private final UserTaskScoresService scoresService;
+
 	public TaskSubmissionService(TaskRepository taskRepository,
 			UserAnswerRepository userAnswerRepository,
 			ProgressModuleRepository progressModuleRepository,
-			TakenCoursesRepository takenCoursesRepository) {
+			TakenCoursesRepository takenCoursesRepository, UserTaskScoresService scoresService) {
 		this.taskRepository = taskRepository;
 		this.userAnswerRepository = userAnswerRepository;
 		this.progressModuleRepository = progressModuleRepository;
 		this.takenCoursesRepository = takenCoursesRepository;
+		this.scoresService = scoresService;
 	}
 
 	@Transactional
@@ -64,6 +67,9 @@ public class TaskSubmissionService {
 				request.progressModuleId(), correct);
 
 		if (correct && !alreadySolved) {
+			// провека про начисление баллов есть в scoresService
+			Long userId = progressModule.getTaken_courses().getUser().getId();
+			scoresService.add(userId, taskId);
 			recalculateModuleProgress(progressModule);
 			recalculateCourseProgress(progressModule.getTaken_courses());
 		}

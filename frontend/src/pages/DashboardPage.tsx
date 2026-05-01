@@ -151,6 +151,7 @@ function DashboardPage() {
             <p><strong>Username:</strong> {profile.username}</p>
             <p><strong>Email:</strong> {profile.email}</p>
             <p><strong>Role:</strong> {profile.role}</p>
+            <p>🎯 Всего баллов: {profile.totalScore}</p>
 
             <div style={{ marginTop: '16px' }}>
               <label htmlFor="username-edit"><strong>Изменить username</strong></label>

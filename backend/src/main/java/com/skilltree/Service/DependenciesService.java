@@ -26,8 +26,9 @@ public class DependenciesService {
 	private final TakenCoursesRepository takenCoursesRepository;
 
 	public DependenciesService(ModuleRepository moduleRepository,
-							   DependencyRepository dependencyRepository,
-							   ProgressModuleRepository progressModuleRepository, TakenCoursesRepository takenCoursesRepository) {
+			DependencyRepository dependencyRepository,
+			ProgressModuleRepository progressModuleRepository,
+			TakenCoursesRepository takenCoursesRepository) {
 		this.moduleRepository = moduleRepository;
 		this.dependencyRepository = dependencyRepository;
 		this.progressModuleRepository = progressModuleRepository;
@@ -124,24 +125,26 @@ public class DependenciesService {
 		return true;
 	}
 
-//	private void dfs2(Long takenCourseId, Long node,
-//			HashMap<Long, List<DependencyTakeCourseDto>> newGraph,
-//			HashMap<Long, List<Long>> graph) {
-//		if (graph.get(node) != null) {
-//			for (Long next : graph.get(node)) {
-//				dfs2(takenCourseId, next, newGraph, graph);
-//			}
-//			List<DependencyTakeCourseDto> list = graph.get(node).stream().map(moduleId -> {
-//				Module module = moduleRepository.findById(moduleId).orElseThrow(
-//						() -> new RuntimeException("Модуль с id " + moduleId + " не найден"));
-//				Dependencies dependencies = dependencyRepository
-//						.findByModuleIdAndBlockModuleId(node, moduleId);
-//				return new DependencyTakeCourseDto(dependencies.getId(), moduleId, module.getName(),
-//						checkIsOpen(takenCourseId, moduleId));
-//			}).toList();
-//			newGraph.put(node, list);
-//		}
-//	}
+	// private void dfs2(Long takenCourseId, Long node,
+	// HashMap<Long, List<DependencyTakeCourseDto>> newGraph,
+	// HashMap<Long, List<Long>> graph) {
+	// if (graph.get(node) != null) {
+	// for (Long next : graph.get(node)) {
+	// dfs2(takenCourseId, next, newGraph, graph);
+	// }
+	// List<DependencyTakeCourseDto> list = graph.get(node).stream().map(moduleId ->
+	// {
+	// Module module = moduleRepository.findById(moduleId).orElseThrow(
+	// () -> new RuntimeException("Модуль с id " + moduleId + " не найден"));
+	// Dependencies dependencies = dependencyRepository
+	// .findByModuleIdAndBlockModuleId(node, moduleId);
+	// return new DependencyTakeCourseDto(dependencies.getId(), moduleId,
+	// module.getName(),
+	// checkIsOpen(takenCourseId, moduleId));
+	// }).toList();
+	// newGraph.put(node, list);
+	// }
+	// }
 
 	public HashMap<Long, List<DependencyTakeCourseDto>> getGraphOfModules(Long takenCourseId) {
 		TakenCourses course = takenCoursesRepository.findById(takenCourseId)
