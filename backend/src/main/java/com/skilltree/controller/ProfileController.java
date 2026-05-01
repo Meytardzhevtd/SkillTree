@@ -1,6 +1,7 @@
 package com.skilltree.controller;
 
 import com.skilltree.Service.UserService;
+import com.skilltree.Service.UserTaskScoresService;
 import com.skilltree.dto.ProfileResponse;
 import com.skilltree.dto.UpdateProfileRequest;
 import com.skilltree.model.Users;
@@ -17,9 +18,11 @@ import java.security.Principal;
 @RequestMapping("/api/profile")
 public class ProfileController {
 	private final UserService userService;
+	private final UserTaskScoresService scoresService;
 
-	public ProfileController(UserService userService) {
+	public ProfileController(UserService userService, UserTaskScoresService scoresService) {
 		this.userService = userService;
+		this.scoresService = scoresService;
 	}
 
 	@GetMapping("/me")
@@ -31,8 +34,9 @@ public class ProfileController {
 
 			String email = principal.getName();
 			Users user = userService.findByEmail(email);
+			Integer totalScore = scoresService.getTotalScore(user.getId());
 			ProfileResponse response = new ProfileResponse(user.getId(), user.getUsername(),
-					user.getEmail(), user.getRole());
+					user.getEmail(), user.getRole(), totalScore);
 			return ResponseEntity.ok(response);
 		} catch (RuntimeException ex) {
 			return ResponseEntity.badRequest().body(ex.getMessage());
@@ -49,8 +53,10 @@ public class ProfileController {
 
 			String email = principal.getName();
 			Users updatedUser = userService.updateUsernameByEmail(email, request.getUsername());
+			Integer totalScore = scoresService.getTotalScore(updatedUser.getId());
 			ProfileResponse response = new ProfileResponse(updatedUser.getId(),
-					updatedUser.getUsername(), updatedUser.getEmail(), updatedUser.getRole());
+					updatedUser.getUsername(), updatedUser.getEmail(), updatedUser.getRole(),
+					totalScore);
 			return ResponseEntity.ok(response);
 		} catch (RuntimeException ex) {
 			return ResponseEntity.badRequest().body(ex.getMessage());

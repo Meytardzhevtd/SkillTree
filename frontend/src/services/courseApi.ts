@@ -41,8 +41,8 @@ export const deleteModule = async (moduleId: number) => {
   return res.data;
 };
 
-export const createTask = async (moduleId: number, taskTypeId: number, content: any) => {
-  const res = await api.post('/tasks', { taskTypeId, moduleId, content });
+export const createTask = async (moduleId: number, taskTypeId: number, content: any, score: number = 10) => {
+  const res = await api.post('/tasks', { taskTypeId, moduleId, content, score });
   return res.data;
 };
 
@@ -140,3 +140,17 @@ export const getLessonById = async (lessonId: number) => {
   return res.data;
 };
 
+export const getAllCourseDependencies = async (courseId: number) => {
+  const res = await api.get(`/dependencies/graph/${courseId}`);
+  return res.data; // HashMap<number, DependencyConstructorDto[]>
+};
+
+export const createDependency = async (mainModuleId: number, dependentModuleId: number) => {
+  const res = await api.post(`/dependencies/${mainModuleId}/${dependentModuleId}`);
+  return res.data;
+};
+
+export const deleteDependency = async (dependencyId: number) => {
+  const res = await api.delete(`/dependencies/${dependencyId}`);
+  return res.data;
+};

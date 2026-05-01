@@ -58,6 +58,7 @@ const ModulePage: React.FC = () => {
     const [options, setOptions] = useState<string[]>(['', '']);
     const [correctIndex, setCorrectIndex] = useState(0);
     const [correctAnswers, setCorrectAnswers] = useState<number[]>([]);
+    const [taskScore, setTaskScore] = useState<number>(10);
 
     useEffect(() => {
         loadAll();
@@ -246,11 +247,12 @@ const ModulePage: React.FC = () => {
 
         try {
             setCreating(true);
-            await createTask(Number(moduleId), taskType === 'ONE_POSSIBLE_ANSWER' ? 1 : 2, content);
+            await createTask(Number(moduleId), taskType === 'ONE_POSSIBLE_ANSWER' ? 1 : 2, content, taskScore);
             setQuestion('');
             setOptions(['', '']);
             setCorrectIndex(0);
             setCorrectAnswers([]);
+            setTaskScore(10);
             setShowTaskForm(false);
             await loadAll();
         } catch (err) {
@@ -392,6 +394,17 @@ const ModulePage: React.FC = () => {
                             </div>
                         ))}
                         <button onClick={handleAddOption} style={{ marginTop: '8px' }}>+ Добавить вариант</button>
+                    </div>
+                    <div style={{ marginBottom: '12px' }}>
+                        <label>Баллы за задачу:</label>
+                        <input
+                            type="number"
+                            min="1"
+                            max="100"
+                            value={taskScore}
+                            onChange={(e) => setTaskScore(Number(e.target.value))}
+                            style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+                        />
                     </div>
                     <button onClick={handleCreateTask} disabled={creating} style={{ background: '#28a745', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px' }}>
                         {creating ? 'Создание...' : 'Создать задачу'}
