@@ -17,10 +17,10 @@ public class DependenciesController {
 		this.dependenciesService = dependenciesService;
 	}
 
-	@PostMapping("{idModuleMain}/{idModuleDependent}")
-	public boolean makeDependent(@PathVariable Long idModuleMain,
-			@PathVariable Long idModuleDependent) {
-		return dependenciesService.makeDependent(idModuleMain, idModuleDependent);
+	@PostMapping("{idMainModule}/{idBlockedModule}")
+	public boolean makeDependent(@PathVariable Long idMainModule,
+			@PathVariable Long idBlockedModule) {
+		return dependenciesService.makeDependent(idMainModule, idBlockedModule);
 	}
 
 	@GetMapping("graph/takenCourse/{takenCourse}")

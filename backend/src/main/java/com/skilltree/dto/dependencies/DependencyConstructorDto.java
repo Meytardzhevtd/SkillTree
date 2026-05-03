@@ -5,12 +5,12 @@ import lombok.Data;
 @Data
 public class DependencyConstructorDto {
 	private Long id;
-	private Long dependentModuleId;
-	private String dependentModuleName;
+	private Long blockedModuleId;
+	private String blockedModuleName;
 
-	public DependencyConstructorDto(Long id, Long dependentModuleId, String dependentModuleName) {
+	public DependencyConstructorDto(Long id, Long blockedModuleId, String blockedModuleName) {
 		this.id = id;
-		this.dependentModuleId = dependentModuleId;
-		this.dependentModuleName = dependentModuleName;
+		this.blockedModuleId = blockedModuleId;
+		this.blockedModuleName = blockedModuleName;
 	}
 }
