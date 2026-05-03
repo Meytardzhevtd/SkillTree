@@ -26,24 +26,31 @@ interface DependencyGraphProps {
 }
 
 const DependencyGraph: React.FC<DependencyGraphProps> = ({ modules, dependencies }) => {
+    const safeModules = Array.isArray(modules) ? modules : [];
+    const safeDependencies = Array.isArray(dependencies) ? dependencies : [];
+
     const initialNodes = useMemo(() => {
-        return modules.map((mod, index) => ({
-            id: mod.id.toString(),
-            data: { label: mod.name },
-            position: { x: (index % 3) * 250, y: Math.floor(index / 3) * 150 },
-            style: { background: '#f0f9ff', border: '1px solid #007bff', borderRadius: '8px', padding: '10px', width: 180 },
-        }));
-    }, [modules]);
+        return safeModules
+            .filter(mod => mod && mod.id && mod.name) // пропускаем невалидные
+            .map((mod, index) => ({
+                id: mod.id.toString(),
+                data: { label: mod.name },
+                position: { x: (index % 3) * 250, y: Math.floor(index / 3) * 150 },
+                style: { background: '#f0f9ff', border: '1px solid #007bff', borderRadius: '8px', padding: '10px', width: 180 },
+            }));
+    }, [safeModules]);
 
     const initialEdges = useMemo(() => {
-        return dependencies.map((dep) => ({
-            id: `edge-${dep.id}`,
-            source: dep.from.toString(),
-            target: dep.to.toString(),
-            type: 'smoothstep',
-            markerEnd: { type: MarkerType.ArrowClosed },
-        }));
-    }, [dependencies]);
+        return safeDependencies
+            .filter(dep => dep && dep.id && dep.from && dep.to)
+            .map((dep) => ({
+                id: `edge-${dep.id}`,
+                source: dep.from.toString(),
+                target: dep.to.toString(),
+                type: 'smoothstep',
+                markerEnd: { type: MarkerType.ArrowClosed },
+            }));
+    }, [safeDependencies]);
 
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -55,6 +62,10 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({ modules, dependencies
     useEffect(() => {
         setEdges(initialEdges);
     }, [initialEdges, setEdges]);
+
+    if (initialNodes.length === 0) {
+        return <div style={{ padding: '20px', textAlign: 'center', color: '#888' }}>Нет модулей для отображения графа</div>;
+    }
 
     return (
         <div style={{ width: '100%', height: '500px', border: '1px solid #ddd', borderRadius: '8px' }}>
