@@ -99,7 +99,6 @@ const CourseConstructorPage: React.FC = () => {
                     });
                 }
             }
-            console.log('Parsed dependencies:', flatDeps);
             setDependencies(flatDeps);
         } catch (err) {
             console.error('Ошибка загрузки зависимостей', err);
@@ -170,6 +169,11 @@ const CourseConstructorPage: React.FC = () => {
         }
     };
 
+    const handleModuleClick = (moduleId: number) => {
+        // Переход на страницу редактирования модуля (админ)
+        navigate(`/module/${moduleId}?courseId=${courseId}`);
+    };
+
     const graphModules = useMemo(() => modules
             .filter(m => m && m.moduleId)
             .map(m => ({ id: m.moduleId, name: m.name })),
@@ -238,15 +242,17 @@ const CourseConstructorPage: React.FC = () => {
                                 justifyContent: 'space-between',
                                 alignItems: 'center',
                                 transition: 'box-shadow 0.2s',
+                                cursor: 'pointer',
                             }}
                             onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)')}
                             onMouseLeave={(e) => (e.currentTarget.style.boxShadow = 'none')}
+                            onClick={() => handleModuleClick(module.moduleId)}
                         >
                             <div style={{ flex: 1 }}>
                                 <strong>{module.name}</strong>
                             </div>
                             <button
-                                onClick={() => handleDeleteModule(module.moduleId)}
+                                onClick={(e) => { e.stopPropagation(); handleDeleteModule(module.moduleId); }}
                                 style={{
                                     background: '#dc3545',
                                     color: 'white',

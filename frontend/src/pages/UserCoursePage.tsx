@@ -1,4 +1,3 @@
-// src/pages/UserCoursePage.tsx
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import {
@@ -39,6 +38,8 @@ const UserCoursePage: React.FC = () => {
     const [studentDepsMap, setStudentDepsMap] = useState<Map<number, any[]>>(new Map());
     const [studentViewMode, setStudentViewMode] = useState<'list' | 'graph'>('list');
 
+    const [takenCourseId, setTakenCourseId] = useState<number | null>(null);
+
     const loadCourseAndModules = async () => {
         try {
             setLoading(true);
@@ -63,7 +64,9 @@ const UserCoursePage: React.FC = () => {
             if (tc) {
                 setCourseProgress(tc.progress);
                 setModuleProgresses(tc.moduleProgresses || []);
+                setTakenCourseId(tc.takenCourseId);
                 const graphData = await getStudentDependencyGraph(tc.takenCourseId);
+                console.log('📊 Graph data:', graphData); // для отладки
                 const depsMap = new Map(Object.entries(graphData).map(([key, val]) => [Number(key), val]));
                 setStudentDepsMap(depsMap);
                 const updatedModules = updateModulesOpenStatus(modulesData, depsMap);
@@ -88,7 +91,7 @@ const UserCoursePage: React.FC = () => {
             for (const item of items) {
                 const dependentId = item.blockedModuleId;
                 dependentIds.add(dependentId);
-                openStatus.set(dependentId, item.isOpen);
+                openStatus.set(dependentId, item.open);
             }
         }
         for (const m of modulesList) {
@@ -96,8 +99,18 @@ const UserCoursePage: React.FC = () => {
                 openStatus.set(m.moduleId, true);
             }
         }
+
+        console.log('DepsMap:', depsMap);
+        for (let [blockerId, items] of depsMap.entries()) {
+            console.log(`Blocker ${blockerId}:`, items);
+        }
+
         return modulesList.map(m => ({ ...m, isOpen: openStatus.get(m.moduleId) || false }));
     };
+
+    useEffect(() => {
+        loadCourseAndModules();
+    }, [courseId, location.pathname, location.search]);
 
     const getModuleProgress = (moduleId: number): number | null => {
         const mp = moduleProgresses.find(m => m.moduleId === moduleId);
@@ -111,15 +124,9 @@ const UserCoursePage: React.FC = () => {
         }
         const params = new URLSearchParams();
         params.set('courseId', courseId!);
-        const takenCourseId = searchParams.get('takenCourseId');
-        if (takenCourseId) params.set('takenCourseId', takenCourseId);
+        if (takenCourseId) params.set('takenCourseId', takenCourseId.toString());
         navigate(`/module/${moduleId}?${params.toString()}`);
     };
-
-    // Ключевое изменение: перезагружаем данные при каждом посещении страницы
-    useEffect(() => {
-        loadCourseAndModules();
-    }, [location.pathname, location.search]);
 
     const studentGraphModules = modules.map(m => ({ id: m.moduleId, name: m.name }));
     const studentGraphEdges = (() => {
@@ -137,6 +144,7 @@ const UserCoursePage: React.FC = () => {
     })();
 
     if (loading) return <div style={{ padding: '20px' }}>Загрузка...</div>;
+
     if (error) {
         return (
             <div style={{ padding: '20px' }}>
@@ -178,6 +186,13 @@ const UserCoursePage: React.FC = () => {
                 </div>
             )}
 
+            <button
+                onClick={() => loadCourseAndModules()}
+                style={{ marginBottom: '16px', background: '#6c757d', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '4px' }}
+            >
+                🔄 Обновить данные
+            </button>
+
             <div style={{ marginBottom: '16px', display: 'flex', gap: '8px' }}>
                 <button
                     onClick={() => setStudentViewMode('list')}
@@ -205,20 +220,6 @@ const UserCoursePage: React.FC = () => {
                 >
                     Граф зависимостей
                 </button>
-                <button
-                    onClick={loadCourseAndModules}
-                    style={{
-                        background: '#28a745',
-                        color: 'white',
-                        padding: '6px 12px',
-                        borderRadius: '4px',
-                        border: 'none',
-                        cursor: 'pointer',
-                        marginLeft: 'auto',
-                    }}
-                >
-                    Обновить
-                </button>
             </div>
 
             {studentViewMode === 'list' && (
@@ -240,6 +241,7 @@ const UserCoursePage: React.FC = () => {
                                             display: 'flex',
                                             alignItems: 'center',
                                             transition: 'box-shadow 0.2s',
+                                            cursor: 'pointer',
                                         }}
                                         onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)')}
                                         onMouseLeave={e => (e.currentTarget.style.boxShadow = 'none')}
