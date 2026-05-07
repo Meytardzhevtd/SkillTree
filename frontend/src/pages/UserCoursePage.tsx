@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
     getCourseById,
     getModulesByCourseId,
@@ -23,7 +23,6 @@ interface ModuleProgress {
 
 const UserCoursePage: React.FC = () => {
     const { courseId } = useParams<{ courseId: string }>();
-    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -67,7 +66,9 @@ const UserCoursePage: React.FC = () => {
                 setTakenCourseId(tc.takenCourseId);
                 const graphData = await getStudentDependencyGraph(tc.takenCourseId);
                 console.log('📊 Graph data:', graphData); // для отладки
-                const depsMap = new Map(Object.entries(graphData).map(([key, val]) => [Number(key), val]));
+                const depsMap = new Map<number, any[]>(
+                    Object.entries(graphData).map(([key, val]) => [Number(key), val as any[]])
+                );
                 setStudentDepsMap(depsMap);
                 const updatedModules = updateModulesOpenStatus(modulesData, depsMap);
                 setModules(updatedModules);
@@ -87,7 +88,7 @@ const UserCoursePage: React.FC = () => {
         modulesList.forEach(m => openStatus.set(m.moduleId, false));
 
         const dependentIds = new Set<number>();
-        for (const [blockerId, items] of depsMap.entries()) {
+        for (const items of depsMap.values()) {
             for (const item of items) {
                 const dependentId = item.blockedModuleId;
                 dependentIds.add(dependentId);

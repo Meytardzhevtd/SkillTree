@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
     getCourseById,
     createModule,
@@ -28,7 +28,6 @@ interface Dependency {
 
 const CourseConstructorPage: React.FC = () => {
     const { courseId } = useParams<{ courseId: string }>();
-    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
     const [courseName, setCourseName] = useState('');
@@ -38,7 +37,6 @@ const CourseConstructorPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [creating, setCreating] = useState(false);
-    const [isAdmin, setIsAdmin] = useState(false);
 
     const [dependencies, setDependencies] = useState<Dependency[]>([]);
     const [selectedBlocker, setSelectedBlocker] = useState<number>(0);
@@ -64,7 +62,6 @@ const CourseConstructorPage: React.FC = () => {
             setCourseName(course.name);
             setCourseDescription(course.description);
             setModules(modulesData || []);
-            setIsAdmin(role === 'admin');
 
             if (role === 'admin') {
                 await loadDependencies(modulesData || []);
