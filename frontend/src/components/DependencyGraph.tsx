@@ -23,22 +23,34 @@ interface DependencyEdge {
 interface DependencyGraphProps {
     modules: ModuleNode[];
     dependencies: DependencyEdge[];
+    onNodeClick?: (nodeId: number) => void;
+    getNodeStyle?: (nodeId: number) => React.CSSProperties;
 }
 
-const DependencyGraph: React.FC<DependencyGraphProps> = ({ modules, dependencies }) => {
+const DependencyGraph: React.FC<DependencyGraphProps> = ({ modules, dependencies, onNodeClick, getNodeStyle }) => {
     const safeModules = Array.isArray(modules) ? modules : [];
     const safeDependencies = Array.isArray(dependencies) ? dependencies : [];
 
     const initialNodes = useMemo(() => {
         return safeModules
-            .filter(mod => mod && mod.id && mod.name) // пропускаем невалидные
-            .map((mod, index) => ({
-                id: mod.id.toString(),
-                data: { label: mod.name },
-                position: { x: (index % 3) * 250, y: Math.floor(index / 3) * 150 },
-                style: { background: '#f0f9ff', border: '1px solid #007bff', borderRadius: '8px', padding: '10px', width: 180 },
-            }));
-    }, [safeModules]);
+            .filter(mod => mod && mod.id && mod.name)
+            .map((mod, index) => {
+                const baseStyle = {
+                    background: '#f0f9ff',
+                    border: '1px solid #007bff',
+                    borderRadius: '8px',
+                    padding: '10px',
+                    width: 180,
+                };
+                const customStyle = getNodeStyle ? getNodeStyle(mod.id) : {};
+                return {
+                    id: mod.id.toString(),
+                    data: { label: mod.name },
+                    position: { x: (index % 3) * 250, y: Math.floor(index / 3) * 150 },
+                    style: { ...baseStyle, ...customStyle },
+                };
+            });
+    }, [safeModules, getNodeStyle]);
 
     const initialEdges = useMemo(() => {
         return safeDependencies
@@ -63,6 +75,12 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({ modules, dependencies
         setEdges(initialEdges);
     }, [initialEdges, setEdges]);
 
+    const handleNodeClick = (_event: React.MouseEvent, node: any) => {
+        if (onNodeClick) {
+            onNodeClick(Number(node.id));
+        }
+    };
+
     if (initialNodes.length === 0) {
         return <div style={{ padding: '20px', textAlign: 'center', color: '#888' }}>Нет модулей для отображения графа</div>;
     }
@@ -74,6 +92,7 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({ modules, dependencies
                 edges={edges}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
+                onNodeClick={handleNodeClick}
                 fitView
                 attributionPosition="bottom-right"
             >

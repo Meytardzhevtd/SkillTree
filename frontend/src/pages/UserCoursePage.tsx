@@ -65,7 +65,7 @@ const UserCoursePage: React.FC = () => {
                 setModuleProgresses(tc.moduleProgresses || []);
                 setTakenCourseId(tc.takenCourseId);
                 const graphData = await getStudentDependencyGraph(tc.takenCourseId);
-                console.log('📊 Graph data:', graphData); // для отладки
+                console.log('📊 Graph data:', graphData);
                 const depsMap = new Map<number, any[]>(
                     Object.entries(graphData).map(([key, val]) => [Number(key), val as any[]])
                 );
@@ -127,6 +127,32 @@ const UserCoursePage: React.FC = () => {
         params.set('courseId', courseId!);
         if (takenCourseId) params.set('takenCourseId', takenCourseId.toString());
         navigate(`/module/${moduleId}?${params.toString()}`);
+    };
+
+    const handleGraphNodeClick = (nodeId: number) => {
+        const module = modules.find(m => m.moduleId === nodeId);
+        if (!module) return;
+        if (!module.isOpen) {
+            alert('Этот модуль пока недоступен. Сначала пройдите блокирующие модули.');
+            return;
+        }
+        const params = new URLSearchParams();
+        params.set('courseId', courseId!);
+        if (takenCourseId) params.set('takenCourseId', takenCourseId.toString());
+        navigate(`/module/${nodeId}?${params.toString()}`);
+    };
+
+    const getNodeStyle = (nodeId: number): React.CSSProperties => {
+        const module = modules.find(m => m.moduleId === nodeId);
+        if (!module) return {};
+        const progress = getModuleProgress(nodeId);
+        if (progress === 100) {
+            return { background: '#d4edda', border: '2px solid #28a745' }; // завершён – зелёный
+        }
+        if (module.isOpen) {
+            return { background: '#f0f9ff', border: '1px solid #007bff' }; // открыт – синий
+        }
+        return { background: '#e9ecef', border: '1px solid #ced4da', color: '#6c757d' }; // закрыт – серый
     };
 
     const studentGraphModules = modules.map(m => ({ id: m.moduleId, name: m.name }));
@@ -287,7 +313,12 @@ const UserCoursePage: React.FC = () => {
                     {studentGraphModules.length === 0 ? (
                         <p>Нет модулей для отображения графа</p>
                     ) : (
-                        <DependencyGraph modules={studentGraphModules} dependencies={studentGraphEdges} />
+                        <DependencyGraph
+                            modules={studentGraphModules}
+                            dependencies={studentGraphEdges}
+                            onNodeClick={handleGraphNodeClick}
+                            getNodeStyle={getNodeStyle}
+                        />
                     )}
                 </div>
             )}

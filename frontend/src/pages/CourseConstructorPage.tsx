@@ -167,8 +167,11 @@ const CourseConstructorPage: React.FC = () => {
     };
 
     const handleModuleClick = (moduleId: number) => {
-        // Переход на страницу редактирования модуля (админ)
         navigate(`/module/${moduleId}?courseId=${courseId}`);
+    };
+
+    const handleGraphNodeClick = (nodeId: number) => {
+        navigate(`/module/${nodeId}?courseId=${courseId}`);
     };
 
     const graphModules = useMemo(() => modules
@@ -379,7 +382,11 @@ const CourseConstructorPage: React.FC = () => {
                         <h3>Граф зависимостей</h3>
                         {loadingDeps && <p>Загрузка...</p>}
                         {!loadingDeps && modules.length > 0 && graphEdges.length > 0 && (
-                            <DependencyGraph modules={graphModules} dependencies={graphEdges} />
+                            <DependencyGraph
+                                modules={graphModules}
+                                dependencies={graphEdges}
+                                onNodeClick={handleGraphNodeClick}
+                            />
                         )}
                         {!loadingDeps && modules.length > 0 && graphEdges.length === 0 && (
                             <p>Нет зависимостей для отображения в графе</p>
