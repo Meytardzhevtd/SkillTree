@@ -17,8 +17,8 @@ interface Module {
     moduleId: number;
     name: string;
     isOpen: boolean;
-    x?: number | null;      // вместо positionX
-    y?: number | null;      // вместо positionY
+    x?: number | null;
+    y?: number | null;
 }
 
 interface Dependency {
@@ -64,7 +64,7 @@ const CourseConstructorPage: React.FC = () => {
 
             setCourseName(course.name);
             setCourseDescription(course.description);
-            setModules((modulesData || []).map(m => ({
+            setModules((modulesData || []).map((m: any) => ({
                 ...m,
                 positionX: m.x,
                 positionY: m.y,
@@ -193,7 +193,6 @@ const CourseConstructorPage: React.FC = () => {
         }
     }, []);
 
-// graphModules теперь использует positionX, positionY:
     const graphModules = useMemo(() => modules
             .filter(m => m && m.moduleId)
             .map(m => ({

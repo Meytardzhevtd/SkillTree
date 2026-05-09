@@ -13,8 +13,8 @@ interface Module {
     moduleId: number;
     name: string;
     isOpen: boolean;
-    x?: number | null;   // добавить
-    y?: number | null;   // добавить
+    x?: number | null;
+    y?: number | null;
 }
 
 interface ModuleProgress {
@@ -150,12 +150,12 @@ const UserCoursePage: React.FC = () => {
         if (!module) return {};
         const progress = getModuleProgress(nodeId);
         if (progress === 100) {
-            return { background: '#d4edda', border: '2px solid #28a745' }; // завершён – зелёный
+            return { background: '#d4edda', border: '2px solid #28a745' };
         }
         if (module.isOpen) {
-            return { background: '#f0f9ff', border: '1px solid #007bff' }; // открыт – синий
+            return { background: '#f0f9ff', border: '1px solid #007bff' };
         }
-        return { background: '#e9ecef', border: '1px solid #ced4da', color: '#6c757d' }; // закрыт – серый
+        return { background: '#e9ecef', border: '1px solid #ced4da', color: '#6c757d' };
     };
 
     const studentGraphModules = modules.map(m => ({
