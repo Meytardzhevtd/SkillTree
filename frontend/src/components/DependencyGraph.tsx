@@ -7,7 +7,7 @@ import ReactFlow, {
     useEdgesState,
     MarkerType,
 } from 'reactflow';
-import type { Node } from 'reactflow';
+import type { Node, Connection, Edge } from 'reactflow';
 import 'reactflow/dist/style.css';
 
 interface ModuleNode {
@@ -30,6 +30,8 @@ interface DependencyGraphProps {
     onNodeDragStop?: (nodeId: number, position: { x: number; y: number }) => void;
     readOnly?: boolean;
     getNodeStyle?: (nodeId: number) => React.CSSProperties;
+    onConnect?: (params: { source: number; target: number }) => Promise<boolean>;
+    onEdgeClick?: (edgeId: string, dependencyId: number) => void;
 }
 
 const DependencyGraph: React.FC<DependencyGraphProps> = ({
@@ -39,6 +41,8 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({
                                                              onNodeDragStop,
                                                              readOnly = false,
                                                              getNodeStyle,
+                                                             onConnect,
+                                                             onEdgeClick,
                                                          }) => {
     const safeModules = Array.isArray(modules) ? modules : [];
     const safeDependencies = Array.isArray(dependencies) ? dependencies : [];
@@ -76,6 +80,7 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({
                 target: dep.to.toString(),
                 type: 'smoothstep',
                 markerEnd: { type: MarkerType.ArrowClosed },
+                data: { dependencyId: dep.id },
             }));
     }, [safeDependencies]);
 
@@ -102,6 +107,30 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({
         }
     };
 
+    const handleConnect = async (connection: Connection) => {
+        if (!connection.source || !connection.target) return;
+        const sourceId = Number(connection.source);
+        const targetId = Number(connection.target);
+        if (sourceId === targetId) {
+            alert('Нельзя создать зависимость от модуля к самому себе');
+            return;
+        }
+        if (onConnect) {
+            const success = await onConnect({ source: sourceId, target: targetId });
+            if (!success) alert('Не удалось создать зависимость (цикл или уже существует)');
+        }
+    };
+
+    const handleEdgeClick = (_event: React.MouseEvent, edge: Edge) => {
+        if (readOnly) return;
+        const dependencyId = edge.data?.dependencyId;
+        if (dependencyId && onEdgeClick) {
+            if (confirm('Удалить зависимость?')) {
+                onEdgeClick(edge.id, dependencyId);
+            }
+        }
+    };
+
     if (initialNodes.length === 0) {
         return <div style={{ padding: '20px', textAlign: 'center', color: '#888' }}>Нет модулей для отображения графа</div>;
     }
@@ -115,6 +144,8 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({
                 onEdgesChange={onEdgesChange}
                 onNodeClick={handleNodeClick}
                 onNodeDragStop={handleNodeDragStop}
+                onConnect={handleConnect}
+                onEdgeClick={handleEdgeClick}
                 nodesDraggable={!readOnly}
                 fitView
                 attributionPosition="bottom-right"

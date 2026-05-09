@@ -412,13 +412,35 @@ const CourseConstructorPage: React.FC = () => {
                     <>
                         <h3>Граф зависимостей</h3>
                         {loadingDeps && <p>Загрузка...</p>}
-                        {!loadingDeps && modules.length > 0 && graphEdges.length > 0 && (
+                        {!loadingDeps && modules.length > 0 && (
                             <DependencyGraph
                                 modules={graphModules}
                                 dependencies={graphEdges}
                                 onNodeClick={handleGraphNodeClick}
                                 onNodeDragStop={onNodeDragStop}
                                 readOnly={false}
+                                onConnect={async ({ source, target }) => {
+                                    try {
+                                        const success = await createDependency(source, target);
+                                        if (success) {
+                                            await loadDependencies(modules);
+                                            return true;
+                                        }
+                                        return false;
+                                    } catch (err) {
+                                        console.error(err);
+                                        return false;
+                                    }
+                                }}
+                                onEdgeClick={async (_edgeId, dependencyId) => {
+                                    try {
+                                        await deleteDependency(dependencyId);
+                                        await loadDependencies(modules);
+                                    } catch (err) {
+                                        console.error(err);
+                                        alert('Ошибка удаления зависимости');
+                                    }
+                                }}
                             />
                         )}
                         {!loadingDeps && modules.length > 0 && graphEdges.length === 0 && (
@@ -427,6 +449,7 @@ const CourseConstructorPage: React.FC = () => {
                         {!loadingDeps && modules.length === 0 && <p>Нет модулей для отображения графа</p>}
                     </>
                 )}
+
                 <button onClick={() => loadDependencies(modules)} style={{ marginTop: '16px' }}>Обновить данные</button>
             </div>
         </div>
