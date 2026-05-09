@@ -7,11 +7,14 @@ import ReactFlow, {
     useEdgesState,
     MarkerType,
 } from 'reactflow';
+import type { Node } from 'reactflow';
 import 'reactflow/dist/style.css';
 
 interface ModuleNode {
     id: number;
     name: string;
+    x?: number;
+    y?: number;
 }
 
 interface DependencyEdge {
@@ -24,10 +27,19 @@ interface DependencyGraphProps {
     modules: ModuleNode[];
     dependencies: DependencyEdge[];
     onNodeClick?: (nodeId: number) => void;
+    onNodeDragStop?: (nodeId: number, position: { x: number; y: number }) => void;
+    readOnly?: boolean;
     getNodeStyle?: (nodeId: number) => React.CSSProperties;
 }
 
-const DependencyGraph: React.FC<DependencyGraphProps> = ({ modules, dependencies, onNodeClick, getNodeStyle }) => {
+const DependencyGraph: React.FC<DependencyGraphProps> = ({
+                                                             modules,
+                                                             dependencies,
+                                                             onNodeClick,
+                                                             onNodeDragStop,
+                                                             readOnly = false,
+                                                             getNodeStyle,
+                                                         }) => {
     const safeModules = Array.isArray(modules) ? modules : [];
     const safeDependencies = Array.isArray(dependencies) ? dependencies : [];
 
@@ -43,14 +55,17 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({ modules, dependencies
                     width: 180,
                 };
                 const customStyle = getNodeStyle ? getNodeStyle(mod.id) : {};
+                const x = mod.x !== undefined ? mod.x : (index % 3) * 250;
+                const y = mod.y !== undefined ? mod.y : Math.floor(index / 3) * 150;
                 return {
                     id: mod.id.toString(),
                     data: { label: mod.name },
-                    position: { x: (index % 3) * 250, y: Math.floor(index / 3) * 150 },
+                    position: { x, y },
                     style: { ...baseStyle, ...customStyle },
+                    draggable: !readOnly,
                 };
             });
-    }, [safeModules, getNodeStyle]);
+    }, [safeModules, getNodeStyle, readOnly]);
 
     const initialEdges = useMemo(() => {
         return safeDependencies
@@ -75,9 +90,15 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({ modules, dependencies
         setEdges(initialEdges);
     }, [initialEdges, setEdges]);
 
-    const handleNodeClick = (_event: React.MouseEvent, node: any) => {
+    const handleNodeClick = (_event: React.MouseEvent, node: Node) => {
         if (onNodeClick) {
             onNodeClick(Number(node.id));
+        }
+    };
+
+    const handleNodeDragStop = (_event: React.MouseEvent, node: Node) => {
+        if (onNodeDragStop && !readOnly) {
+            onNodeDragStop(Number(node.id), node.position);
         }
     };
 
@@ -93,6 +114,8 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({ modules, dependencies
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onNodeClick={handleNodeClick}
+                onNodeDragStop={handleNodeDragStop}
+                nodesDraggable={!readOnly}
                 fitView
                 attributionPosition="bottom-right"
             >

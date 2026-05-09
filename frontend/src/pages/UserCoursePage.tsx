@@ -13,6 +13,8 @@ interface Module {
     moduleId: number;
     name: string;
     isOpen: boolean;
+    x?: number | null;   // добавить
+    y?: number | null;   // добавить
 }
 
 interface ModuleProgress {
@@ -50,6 +52,7 @@ const UserCoursePage: React.FC = () => {
                 getMyRoleInCourse(Number(courseId)),
             ]);
 
+            setModules(modulesData || []);
             setCourseName(course.name);
             setCourseDescription(course.description);
 
@@ -155,7 +158,12 @@ const UserCoursePage: React.FC = () => {
         return { background: '#e9ecef', border: '1px solid #ced4da', color: '#6c757d' }; // закрыт – серый
     };
 
-    const studentGraphModules = modules.map(m => ({ id: m.moduleId, name: m.name }));
+    const studentGraphModules = modules.map(m => ({
+        id: m.moduleId,
+        name: m.name,
+        x: m.x ?? undefined,
+        y: m.y ?? undefined,
+    }));
     const studentGraphEdges = (() => {
         const edges: { id: number; from: number; to: number }[] = [];
         for (const [blockerId, items] of studentDepsMap.entries()) {
@@ -318,6 +326,7 @@ const UserCoursePage: React.FC = () => {
                             dependencies={studentGraphEdges}
                             onNodeClick={handleGraphNodeClick}
                             getNodeStyle={getNodeStyle}
+                            readOnly={true}
                         />
                     )}
                 </div>

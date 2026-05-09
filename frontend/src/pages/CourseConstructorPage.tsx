@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     getCourseById,
@@ -9,6 +9,7 @@ import {
     getAllCourseDependencies,
     createDependency,
     deleteDependency,
+    saveModulePositions,
 } from '../services/courseApi';
 import DependencyGraph from '../components/DependencyGraph';
 
@@ -16,6 +17,8 @@ interface Module {
     moduleId: number;
     name: string;
     isOpen: boolean;
+    x?: number | null;      // вместо positionX
+    y?: number | null;      // вместо positionY
 }
 
 interface Dependency {
@@ -61,7 +64,11 @@ const CourseConstructorPage: React.FC = () => {
 
             setCourseName(course.name);
             setCourseDescription(course.description);
-            setModules(modulesData || []);
+            setModules((modulesData || []).map(m => ({
+                ...m,
+                positionX: m.x,
+                positionY: m.y,
+            })));
 
             if (role === 'admin') {
                 await loadDependencies(modulesData || []);
@@ -174,11 +181,36 @@ const CourseConstructorPage: React.FC = () => {
         navigate(`/module/${nodeId}?courseId=${courseId}`);
     };
 
+    const onNodeDragStop = useCallback(async (nodeId: number, position: { x: number; y: number }) => {
+        try {
+            await saveModulePositions(nodeId, position.x, position.y);
+            setModules(prev => prev.map(m =>
+                m.moduleId === nodeId ? { ...m, x: position.x, y: position.y } : m
+            ));
+        } catch (err) {
+            console.error('Ошибка сохранения позиции:', err);
+            alert('Не удалось сохранить позицию модуля');
+        }
+    }, []);
+
+// graphModules теперь использует positionX, positionY:
     const graphModules = useMemo(() => modules
             .filter(m => m && m.moduleId)
-            .map(m => ({ id: m.moduleId, name: m.name })),
+            .map(m => ({
+                id: m.moduleId,
+                name: m.name,
+                x: m.x ?? undefined,
+                y: m.y ?? undefined,
+            })),
         [modules]
     );
+
+    // const graphModules = useMemo(() => [
+    //     { id: 34, name: 'Модуль 34', x: 50, y: 50 },
+    //     { id: 35, name: 'Модуль 35', x: 300, y: 100 },
+    //     { id: 36, name: 'Модуль 36', x: 150, y: 200 },
+    //     { id: 37, name: 'Модуль 37', x: 400, y: 250 },
+    // ], []);
 
     const graphEdges = useMemo(() => dependencies
             .filter(d => d && d.id && d.blockerId && d.dependentId)
@@ -386,6 +418,8 @@ const CourseConstructorPage: React.FC = () => {
                                 modules={graphModules}
                                 dependencies={graphEdges}
                                 onNodeClick={handleGraphNodeClick}
+                                onNodeDragStop={onNodeDragStop}
+                                readOnly={false}
                             />
                         )}
                         {!loadingDeps && modules.length > 0 && graphEdges.length === 0 && (

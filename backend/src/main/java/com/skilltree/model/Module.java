@@ -31,6 +31,12 @@ public class Module {
 	@Column(name = "can_be_open", nullable = false)
 	private Boolean can_be_open;
 
+	@Column(name = "position_x")
+	private Float positionX;
+
+	@Column(name = "position_y")
+	private Float positionY;
+
 	@OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Task> tasks = new ArrayList<>();
 

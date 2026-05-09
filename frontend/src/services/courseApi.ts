@@ -159,3 +159,10 @@ export const getStudentDependencyGraph = async (takenCourseId: number) => {
   const res = await api.get(`/dependencies/graph/takenCourse/${takenCourseId}`);
   return res.data;
 };
+
+export const saveModulePositions = async (moduleId: number, x: number, y: number) => {
+  const res = await api.post('/module/position', null, {
+    params: { moduleId, x, y }
+  });
+  return res.data;
+};

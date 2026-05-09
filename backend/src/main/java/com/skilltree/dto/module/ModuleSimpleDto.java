@@ -7,5 +7,5 @@ package com.skilltree.dto.module;
  * по id модуля и высветиться вся информация о модуле.
  */
 
-public record ModuleSimpleDto(Long moduleId, String name, boolean isOpen) {
+public record ModuleSimpleDto(Long moduleId, String name, boolean isOpen, Float x, Float y) {
 }
