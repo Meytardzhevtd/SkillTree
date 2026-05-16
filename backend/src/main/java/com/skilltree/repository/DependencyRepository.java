@@ -10,13 +10,13 @@ import com.skilltree.model.Dependencies;
 
 public interface DependencyRepository extends JpaRepository<Dependencies, Long> {
 
-	@Query("SELECT d FROM Dependencies d WHERE d.module.id = :moduleId")
-	List<Dependencies> findByModuleId(@Param("moduleId") Long moduleId);
+	@Query("SELECT d FROM Dependencies d WHERE d.mainModule.id = :moduleId")
+	List<Dependencies> findByMainModuleId(@Param("moduleId") Long moduleId);
 
-	@Query("SELECT d FROM Dependencies d WHERE d.block_module.id = :moduleId")
-	List<Dependencies> findByBlockModuleId(@Param("moduleId") Long moduleId);
+	@Query("SELECT d FROM Dependencies d WHERE d.blockedModule.id = :moduleId")
+	List<Dependencies> findByBlockedModuleId(@Param("moduleId") Long moduleId);
 
-	@Query("SELECT d FROM Dependencies d WHERE d.module.id = :mainModuleId AND d.block_module.id = :blockModuleId")
-	Dependencies findByModuleIdAndBlockModuleId(@Param("mainModuleId") Long mainModuleId,
+	@Query("SELECT d FROM Dependencies d WHERE d.mainModule.id = :mainModuleId AND d.blockedModule.id = :blockModuleId")
+	Dependencies findByMainModuleIdAndBlockedModuleId(@Param("mainModuleId") Long mainModuleId,
 			@Param("blockModuleId") Long blockModuleId);
 }

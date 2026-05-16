@@ -17,16 +17,16 @@ public class DependenciesController {
 		this.dependenciesService = dependenciesService;
 	}
 
-	@PostMapping("{idModuleMain}/{idModuleDependent}")
-	public boolean makeDependent(@PathVariable Long idModuleMain,
-			@PathVariable Long idModuleDependent) {
-		return dependenciesService.makeDependent(idModuleMain, idModuleDependent);
+	@PostMapping("{idMainModule}/{idBlockedModule}")
+	public boolean makeDependent(@PathVariable Long idMainModule,
+			@PathVariable Long idBlockedModule) {
+		return dependenciesService.makeDependent(idMainModule, idBlockedModule);
 	}
 
 	@GetMapping("graph/takenCourse/{takenCourse}")
 	public HashMap<Long, List<DependencyTakeCourseDto>> getGraphByModule(
 			@PathVariable Long takenCourse) {
-		return dependenciesService.getGraphOfModules(takenCourse);
+		return dependenciesService.getUserCourseGraph(takenCourse);
 	}
 
 	@DeleteMapping("/{id}")
@@ -37,7 +37,7 @@ public class DependenciesController {
 	@GetMapping("graph/{idCourse}")
 	public HashMap<Long, List<DependencyConstructorDto>> getGraphByCourse(
 			@PathVariable Long idCourse) {
-		return dependenciesService.getAllGraph(idCourse);
+		return dependenciesService.getCourseGraph(idCourse);
 	}
 
 }

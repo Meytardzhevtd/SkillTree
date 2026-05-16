@@ -38,8 +38,8 @@ public class DependenciesService {
 	private void dfs(Long node, HashMap<Long, List<Long>> graph) {
 		// граф должен быть деревом, поэтому без проверки на то, что
 		// снова зайдем в одну и ту же вершину во время обхода
-		List<Long> list = dependencyRepository.findByModuleId(node).stream()
-				.map(dependencies -> dependencies.getBlock_module().getId())
+		List<Long> list = dependencyRepository.findByMainModuleId(node).stream()
+				.map(dependencies -> dependencies.getBlockedModule().getId())
 				.collect(Collectors.toList());
 		graph.put(node, list);
 		for (Long next : list) {
@@ -47,7 +47,7 @@ public class DependenciesService {
 		}
 	}
 
-	private HashMap<Long, List<Long>> makeGraph(Long root) {
+	private HashMap<Long, List<Long>> makeTree(Long root) {
 		HashMap<Long, List<Long>> graph = new HashMap<>();
 		dfs(root, graph);
 		return graph;
@@ -81,44 +81,45 @@ public class DependenciesService {
 	}
 
 	@Transactional
-	public boolean makeDependent(Long idModuleMain, Long idModuleDependent) {
-		if (idModuleMain.equals(idModuleDependent)) {
+	public boolean makeDependent(Long idMainModule, Long idBlockedModule) {
+		if (idMainModule.equals(idBlockedModule)) {
 			// TODO: передавать соответствующее сообщение об ошибке
 			return false;
 		}
 
-		HashMap<Long, List<Long>> graph = makeGraph(idModuleMain);
-		if (!checkForCycles(idModuleDependent, idModuleMain, graph)) {
-			if (graph.containsKey(idModuleMain)) {
-				if (!checkForModule(idModuleMain, idModuleDependent, graph)) {
-					graph.get(idModuleMain).add(idModuleDependent);
+		HashMap<Long, List<Long>> graph = makeTree(idBlockedModule);
+		if (!checkForCycles(idBlockedModule, idMainModule, graph)) {
+			if (graph.containsKey(idMainModule)) {
+				if (!checkForModule(idMainModule, idBlockedModule, graph)) {
+					graph.get(idMainModule).add(idBlockedModule);
 				} else {
-					// TODO: передавать соответствующее сообщение об ошибке
+					// TODO: передавать соответствующее сообщение об ошибке, о том что уже зависит
+					// от модуля
 					return false;
 				}
 			} else {
-				graph.put(idModuleMain, new ArrayList<>(List.of(idModuleDependent)));
+				graph.put(idMainModule, new ArrayList<>(List.of(idBlockedModule)));
 			}
 		} else {
 			// TODO: передавать соответствующее сообщение об ошибке
 			return false;
 		}
 		Dependencies dep = new Dependencies();
-		dep.setModule(moduleRepository.findById(idModuleMain).orElseThrow(
-				() -> new RuntimeException("Модуль с id " + idModuleMain + " не найден")));
-		dep.setBlock_module(moduleRepository.findById(idModuleDependent).orElseThrow(
-				() -> new RuntimeException("Модуль с id " + idModuleDependent + " не найден")));
+		dep.setMainModule(moduleRepository.findById(idMainModule).orElseThrow(
+				() -> new RuntimeException("Модуль с id " + idMainModule + " не найден")));
+		dep.setBlockedModule(moduleRepository.findById(idBlockedModule).orElseThrow(
+				() -> new RuntimeException("Модуль с id " + idBlockedModule + " не найден")));
 		dependencyRepository.save(dep);
 		return true;
 	}
 
 	private boolean checkIsOpen(Long takenCourseId, Long moduleId) {
-		List<Long> mainModules = dependencyRepository.findByBlockModuleId(moduleId).stream()
-				.map(id -> id.getModule().getId()).toList();
+		List<Long> mainModules = dependencyRepository.findByBlockedModuleId(moduleId).stream()
+				.map(id -> id.getMainModule().getId()).toList();
 		for (Long mainModuleId : mainModules) {
 			ProgressModule progress = progressModuleRepository
 					.findByModuleIdAndTakenCoursesId(mainModuleId, takenCourseId).orElse(null);
-			if (progress == null || progress.getProgress() != 100.0f) {
+			if (progress == null || Math.abs(100.0f - progress.getProgress()) >= 0.1f) {
 				return false;
 			}
 		}
@@ -146,7 +147,7 @@ public class DependenciesService {
 	// }
 	// }
 
-	public HashMap<Long, List<DependencyTakeCourseDto>> getGraphOfModules(Long takenCourseId) {
+	public HashMap<Long, List<DependencyTakeCourseDto>> getUserCourseGraph(Long takenCourseId) {
 		TakenCourses course = takenCoursesRepository.findById(takenCourseId)
 				.orElseThrow(() -> new RuntimeException("не существует такого выбранного курса"));
 		Long courseId = course.getCourse().getId();
@@ -154,11 +155,12 @@ public class DependenciesService {
 				.map(module -> module.getId()).toList();
 		HashMap<Long, List<DependencyTakeCourseDto>> graph = new HashMap<>();
 		for (Long id : moduleIds) {
-			List<DependencyTakeCourseDto> deps = dependencyRepository.findByModuleId(id).stream()
+			List<DependencyTakeCourseDto> deps = dependencyRepository.findByMainModuleId(id)
+					.stream()
 					.map(dependencies -> new DependencyTakeCourseDto(dependencies.getId(),
-							dependencies.getBlock_module().getId(),
-							dependencies.getBlock_module().getName(),
-							checkIsOpen(takenCourseId, dependencies.getBlock_module().getId())))
+							dependencies.getBlockedModule().getId(),
+							dependencies.getBlockedModule().getName(),
+							checkIsOpen(takenCourseId, dependencies.getBlockedModule().getId())))
 					.toList();
 			graph.put(id, deps);
 		}
@@ -171,15 +173,16 @@ public class DependenciesService {
 		dependencyRepository.delete(dependence);
 	}
 
-	public HashMap<Long, List<DependencyConstructorDto>> getAllGraph(Long courseId) {
+	public HashMap<Long, List<DependencyConstructorDto>> getCourseGraph(Long courseId) {
 		List<Long> moduleIds = moduleRepository.findByCourseIdOrderById(courseId).stream()
 				.map(module -> module.getId()).toList();
 		HashMap<Long, List<DependencyConstructorDto>> graph = new HashMap<>();
 		for (Long id : moduleIds) {
-			List<DependencyConstructorDto> deps = dependencyRepository.findByModuleId(id).stream()
+			List<DependencyConstructorDto> deps = dependencyRepository.findByMainModuleId(id)
+					.stream()
 					.map(dependencies -> new DependencyConstructorDto(dependencies.getId(),
-							dependencies.getBlock_module().getId(),
-							dependencies.getBlock_module().getName()))
+							dependencies.getBlockedModule().getId(),
+							dependencies.getBlockedModule().getName()))
 					.toList();
 			graph.put(id, deps);
 		}

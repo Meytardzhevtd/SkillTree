@@ -7,7 +7,8 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import CreateCoursePage from './pages/CreateCoursePage'
 import MyCoursesPage from './pages/MyCoursesPage'
-import CoursePage from './pages/CoursePage'
+import CourseConstructorPage from './pages/CourseConstructorPage'
+import UserCoursePage from './pages/UserCoursePage'
 import ModulePage from './pages/ModulePage'
 import CatalogPage from './pages/CatalogPage'
 import TaskPage from './pages/TaskPage'
@@ -27,7 +28,8 @@ function App() {
           <Route path="/create-course" element={<CreateCoursePage />} />
           <Route path="/my-courses" element={<MyCoursesPage />} />
           <Route path="/catalog" element={<CatalogPage />} />
-          <Route path="/course/:courseId" element={<CoursePage />} />
+          <Route path="/course/:courseId" element={<UserCoursePage />} />
+          <Route path="/course/:courseId/edit" element={<CourseConstructorPage />} />
           <Route path="/module/:moduleId" element={<ModulePage />} />
           <Route path="/task/:taskId" element={<TaskPage />} />
           <Route path="/lesson/:lessonId" element={<LessonPage />} />

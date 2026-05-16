@@ -1,9 +1,6 @@
 package com.skilltree.Service;
 
-import com.skilltree.dto.module.CreateModuleRequest;
-import com.skilltree.dto.module.ModuleResponse;
-import com.skilltree.dto.module.ModuleSimpleDto;
-import com.skilltree.dto.module.StartModuleResponse;
+import com.skilltree.dto.module.*;
 import com.skilltree.dto.tasks.TaskSimpleDto;
 import com.skilltree.exception.CourseNotFoundException;
 import com.skilltree.exception.ModuleIsNotAvailable;
@@ -24,6 +21,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -129,8 +127,10 @@ public class ModuleService {
 		Courses course = courseRepository.findById(courseId)
 				.orElseThrow(() -> new CourseNotFoundException(courseId));
 
-		return course.getModules().stream().map(module -> new ModuleSimpleDto(module.getId(),
-				module.getName(), module.getCan_be_open())).toList();
+		return course.getModules().stream()
+				.map(module -> new ModuleSimpleDto(module.getId(), module.getName(),
+						module.getCan_be_open(), module.getPositionX(), module.getPositionY()))
+				.toList();
 	}
 
 	@Transactional
@@ -179,4 +179,14 @@ public class ModuleService {
 		Users answerUser = answer.getProgress_module().getTaken_courses().getUser();
 		return answerUser != null && userId.equals(answerUser.getId());
 	}
+
+	@Transactional
+	public void changePositions(Long moduleId, Float x, Float y) {
+		Module module = moduleRepository.findById(moduleId)
+				.orElseThrow(() -> new ModuleNotFoundException(moduleId));
+		module.setPositionX(x);
+		module.setPositionY(y);
+		moduleRepository.save(module);
+	}
+
 }

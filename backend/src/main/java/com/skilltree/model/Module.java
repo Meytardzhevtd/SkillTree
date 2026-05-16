@@ -31,13 +31,19 @@ public class Module {
 	@Column(name = "can_be_open", nullable = false)
 	private Boolean can_be_open;
 
+	@Column(name = "position_x")
+	private Float positionX;
+
+	@Column(name = "position_y")
+	private Float positionY;
+
 	@OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Task> tasks = new ArrayList<>();
 
-	@OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy = "mainModule", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Dependencies> dependencies = new ArrayList<>();
 
-	@OneToMany(mappedBy = "block_module", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy = "blockedModule", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Dependencies> blockedBy = new ArrayList<>();
 
 	@OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)

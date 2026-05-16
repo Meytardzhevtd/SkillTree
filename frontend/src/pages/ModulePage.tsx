@@ -92,8 +92,8 @@ const ModulePage: React.FC = () => {
 
             // Собираем навигацию: сначала все уроки, потом все задачи
             const items: NavItem[] = [
-                ...lessonsData.map(l => ({ type: 'lesson' as const, id: l.id, title: l.title })),
-                ...tasksData.map(t => ({ type: 'task' as const, id: t.id, title: t.content.question }))
+                ...lessonsData.map((l: Lesson) => ({ type: 'lesson' as const, id: l.id, title: l.title })),
+                ...tasksData.map((t: Task) => ({ type: 'task' as const, id: t.id, title: t.content.question }))
             ];
             setNavItems(items);
             setCurrentNavIndex(items.length > 0 ? 0 : null);
@@ -147,39 +147,39 @@ const ModulePage: React.FC = () => {
         }
     };
 
-    const handlePrev = () => {
-        if (currentNavIndex !== null && currentNavIndex > 0) {
-            const prevItem = navItems[currentNavIndex - 1];
-            if (prevItem.type === 'lesson') {
-                navigate(`/lesson/${prevItem.id}`);
-            } else {
-                const takenCourseId = searchParams.get('takenCourseId');
-                const courseId = searchParams.get('courseId');
-                const params = new URLSearchParams();
-                if (takenCourseId) params.set('takenCourseId', takenCourseId);
-                if (courseId) params.set('courseId', courseId);
-                navigate(`/task/${prevItem.id}?${params.toString()}`);
-            }
-            setCurrentNavIndex(currentNavIndex - 1);
-        }
-    };
+    // const handlePrev = () => {
+    //     if (currentNavIndex !== null && currentNavIndex > 0) {
+    //         const prevItem = navItems[currentNavIndex - 1];
+    //         if (prevItem.type === 'lesson') {
+    //             navigate(`/lesson/${prevItem.id}`);
+    //         } else {
+    //             const takenCourseId = searchParams.get('takenCourseId');
+    //             const courseId = searchParams.get('courseId');
+    //             const params = new URLSearchParams();
+    //             if (takenCourseId) params.set('takenCourseId', takenCourseId);
+    //             if (courseId) params.set('courseId', courseId);
+    //             navigate(`/task/${prevItem.id}?${params.toString()}`);
+    //         }
+    //         setCurrentNavIndex(currentNavIndex - 1);
+    //     }
+    // };
 
-    const handleNext = () => {
-        if (currentNavIndex !== null && currentNavIndex < navItems.length - 1) {
-            const nextItem = navItems[currentNavIndex + 1];
-            if (nextItem.type === 'lesson') {
-                navigate(`/lesson/${nextItem.id}`);
-            } else {
-                const takenCourseId = searchParams.get('takenCourseId');
-                const courseId = searchParams.get('courseId');
-                const params = new URLSearchParams();
-                if (takenCourseId) params.set('takenCourseId', takenCourseId);
-                if (courseId) params.set('courseId', courseId);
-                navigate(`/task/${nextItem.id}?${params.toString()}`);
-            }
-            setCurrentNavIndex(currentNavIndex + 1);
-        }
-    };
+    // const handleNext = () => {
+    //     if (currentNavIndex !== null && currentNavIndex < navItems.length - 1) {
+    //         const nextItem = navItems[currentNavIndex + 1];
+    //         if (nextItem.type === 'lesson') {
+    //             navigate(`/lesson/${nextItem.id}`);
+    //         } else {
+    //             const takenCourseId = searchParams.get('takenCourseId');
+    //             const courseId = searchParams.get('courseId');
+    //             const params = new URLSearchParams();
+    //             if (takenCourseId) params.set('takenCourseId', takenCourseId);
+    //             if (courseId) params.set('courseId', courseId);
+    //             navigate(`/task/${nextItem.id}?${params.toString()}`);
+    //         }
+    //         setCurrentNavIndex(currentNavIndex + 1);
+    //     }
+    // };
 
     const handleGoToFirstTask = () => {
         const firstTaskIndex = navItems.findIndex(item => item.type === 'task');
@@ -267,9 +267,9 @@ const ModulePage: React.FC = () => {
 
     const completedCount = tasks.filter(t => t.isCompleted).length;
     const currentItem = currentNavIndex !== null ? navItems[currentNavIndex] : null;
-    const isCurrentLesson = currentItem?.type === 'lesson';
+    // const isCurrentLesson = currentItem?.type === 'lesson';
     const isLastLesson = currentItem?.type === 'lesson' && navItems[currentNavIndex! + 1]?.type === 'task';
-    const isLastItem = currentNavIndex === navItems.length - 1;
+    // const isLastItem = currentNavIndex === navItems.length - 1;
 
     return (
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
