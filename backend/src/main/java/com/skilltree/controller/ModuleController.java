@@ -1,15 +1,13 @@
 package com.skilltree.controller;
 
 import com.skilltree.Service.ModuleService;
-import com.skilltree.dto.module.CreateModuleRequest;
-import com.skilltree.dto.module.ModuleResponse;
-import com.skilltree.dto.module.ModuleSimpleDto;
-import com.skilltree.dto.module.StartModuleResponse;
+import com.skilltree.dto.module.*;
 
 import io.swagger.v3.oas.annotations.Operation;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -51,4 +49,12 @@ public class ModuleController {
 			@RequestParam Long takenCourseId) {
 		return moduleService.startModule(moduleId, takenCourseId);
 	}
+
+	@PostMapping("/position")
+	public ResponseEntity<Void> updateModulePositions(@RequestParam Long moduleId,
+			@RequestParam Float x, @RequestParam Float y) {
+		moduleService.changePositions(moduleId, x, y);
+		return ResponseEntity.ok().build();
+	}
+
 }

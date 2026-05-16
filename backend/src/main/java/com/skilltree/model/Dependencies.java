@@ -8,7 +8,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @Entity
 @Table(name = "Dependencies",
 		uniqueConstraints = @UniqueConstraint(name = "uq_dependence",
-				columnNames = {"id_module", "id_block_module"}))
+				columnNames = {"id_main_module", "id_blocked_module"}))
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,16 +18,16 @@ public class Dependencies {
 	private Long id;
 
 	@ManyToOne
-	@JoinColumn(name = "id_module", referencedColumnName = "id", nullable = false,
-			foreignKey = @ForeignKey(name = "fk_dependence_module",
+	@JoinColumn(name = "id_main_module", referencedColumnName = "id", nullable = false,
+			foreignKey = @ForeignKey(name = "fk_dependence_main_module ",
 					value = ConstraintMode.CONSTRAINT))
 	@OnDelete(action = OnDeleteAction.CASCADE)
-	private Module module;
+	private Module mainModule;
 
 	@ManyToOne
-	@JoinColumn(name = "id_block_module", referencedColumnName = "id", nullable = false,
-			foreignKey = @ForeignKey(name = "fk_dependence_block_module",
+	@JoinColumn(name = "id_blocked_module", referencedColumnName = "id", nullable = false,
+			foreignKey = @ForeignKey(name = "fk_dependence_blocked_module",
 					value = ConstraintMode.CONSTRAINT))
 	@OnDelete(action = OnDeleteAction.CASCADE)
-	private Module block_module;
+	private Module blockedModule;
 }

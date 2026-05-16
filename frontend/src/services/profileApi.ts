@@ -16,8 +16,8 @@ export type ProfileResponse = {
   username: string;
   email: string;
   role: string;
+  totalScore: number;
 };
-
 export async function getMyProfile(): Promise<ProfileResponse> {
   const res = await api.get('/profile/me');
   return res.data;

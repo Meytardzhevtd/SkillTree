@@ -42,4 +42,16 @@ public class Task {
 
 	@OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<UserAnswers> user_answers = new ArrayList<>();
+
+	@Column(name = "score", nullable = false)
+	private Integer score = 10;
+
+	// Конструктор для существующих вызовов (без score)
+	public Task(Long id, TaskTypes task_type, Module module, TaskContent content) {
+		this.id = id;
+		this.task_type = task_type;
+		this.module = module;
+		this.content = content;
+		this.score = 10;
+	}
 }

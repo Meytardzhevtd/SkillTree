@@ -83,7 +83,7 @@ const MyCoursesPage: React.FC = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     {createdCourses.map((course) => (
                         <div key={course.courseId} style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '16px' }} onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'} onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}>
-                            <Link to={`/course/${course.courseId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <Link to={`/course/${course.courseId}/edit`} style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <h2 style={{ margin: '0 0 8px 0', color: '#007bff' }}>{course.title}</h2>
                                 <p style={{ margin: 0, color: '#666' }}>{course.description}</p>
                             </Link>

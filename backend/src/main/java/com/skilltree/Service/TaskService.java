@@ -87,7 +87,8 @@ public class TaskService {
 
 		checkAdminAccess(module.getCourse().getId());
 
-		Task saved = taskRepository.save(createTaskDto.toEntity(taskType, module));
+		Task saved = taskRepository
+				.save(createTaskDto.toEntity(taskType, module, createTaskDto.getScore()));
 		log.info("Задание создано, id={}", saved.getId());
 
 		recalculateAllProgressesForModule(module);

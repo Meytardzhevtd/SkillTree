@@ -24,7 +24,7 @@ public class ModuleDto {
 		this.tasks = module.getTasks().stream().map(task -> new TaskSimpleDto(task.getId(), false))
 				.toList();
 
-		this.blockedBy = module.getBlockedBy().stream().map(dep -> dep.getModule().getId())
+		this.blockedBy = module.getBlockedBy().stream().map(dep -> dep.getMainModule().getId())
 				.toList();
 	}
 }
