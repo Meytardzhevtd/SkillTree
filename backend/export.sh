@@ -15,7 +15,7 @@ add_files() {
             echo >> "$OUTPUT_FILE"
             echo "-------------------------------------------------" >> "$OUTPUT_FILE"
             echo >> "$OUTPUT_FILE"
-        done
+        done 
     else
         echo "   ⚠️ Папка $dir не найдена, пропускаю."
     fi
