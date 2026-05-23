@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getMyCoursesByRole, getMyTakenCourses } from '../services/courseApi';
-
+import { getToken } from '../services/authStorage';
 interface CreatedCourse {
     courseId: number;
     title: string;
@@ -28,6 +28,36 @@ const ProgressBar: React.FC<{ value: number; color?: string }> = ({ value, color
         <div style={{ background: color, height: '100%', width: `${value}%`, transition: 'width 0.3s' }} />
     </div>
 );
+
+const handleImportCourse = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const response = await fetch('/api/import-files/json-course', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${getToken()}`
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            alert(`Курс успешно импортирован! ID: ${data.courseId}`);
+            // Перезагрузить страницу или обновить список курсов
+            window.location.reload();
+        } else {
+            alert(`Ошибка: ${data.error}`);
+        }
+    } catch (err) {
+        alert('Ошибка при импорте');
+        console.error(err);
+    }
+};
 
 const MyCoursesPage: React.FC = () => {
     const [createdCourses, setCreatedCourses] = useState<CreatedCourse[]>([]);
@@ -139,8 +169,19 @@ const MyCoursesPage: React.FC = () => {
             )}
 
             {activeTab === 'created' && (
-                <div style={{ marginTop: '24px' }}>
-                    <Link to="/create-course"><button>➕ Создать новый курс</button></Link>
+                <div style={{ marginTop: '24px', display: 'flex', gap: '12px' }}>
+                    <Link to="/create-course">
+                        <button>➕ Создать новый курс</button>
+                    </Link>
+                    <label style={{ padding: '8px 16px', background: '#28a745', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>
+                        📁 Импорт курса из JSON
+                        <input
+                            type="file"
+                            accept=".json"
+                            style={{ display: 'none' }}
+                            onChange={handleImportCourse}
+                        />
+                    </label>
                 </div>
             )}
         </div>
