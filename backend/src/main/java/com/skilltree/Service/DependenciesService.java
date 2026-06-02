@@ -3,6 +3,7 @@ package com.skilltree.Service;
 import com.skilltree.dto.dependencies.DependencyConstructorDto;
 import com.skilltree.dto.dependencies.DependencyTakeCourseDto;
 import com.skilltree.model.Dependencies;
+import com.skilltree.model.Module;
 import com.skilltree.model.ProgressModule;
 import com.skilltree.model.TakenCourses;
 import com.skilltree.repository.DependencyRepository;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -113,56 +115,59 @@ public class DependenciesService {
 		return true;
 	}
 
-	private boolean checkIsOpen(Long takenCourseId, Long moduleId) {
-		List<Long> mainModules = dependencyRepository.findByBlockedModuleId(moduleId).stream()
-				.map(id -> id.getMainModule().getId()).toList();
-		for (Long mainModuleId : mainModules) {
-			ProgressModule progress = progressModuleRepository
-					.findByModuleIdAndTakenCoursesId(mainModuleId, takenCourseId).orElse(null);
-			if (progress == null || Math.abs(100.0f - progress.getProgress()) >= 0.1f) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	// private void dfs2(Long takenCourseId, Long node,
-	// HashMap<Long, List<DependencyTakeCourseDto>> newGraph,
-	// HashMap<Long, List<Long>> graph) {
-	// if (graph.get(node) != null) {
-	// for (Long next : graph.get(node)) {
-	// dfs2(takenCourseId, next, newGraph, graph);
-	// }
-	// List<DependencyTakeCourseDto> list = graph.get(node).stream().map(moduleId ->
-	// {
-	// Module module = moduleRepository.findById(moduleId).orElseThrow(
-	// () -> new RuntimeException("Модуль с id " + moduleId + " не найден"));
-	// Dependencies dependencies = dependencyRepository
-	// .findByModuleIdAndBlockModuleId(node, moduleId);
-	// return new DependencyTakeCourseDto(dependencies.getId(), moduleId,
-	// module.getName(),
-	// checkIsOpen(takenCourseId, moduleId));
-	// }).toList();
-	// newGraph.put(node, list);
-	// }
-	// }
-
 	public HashMap<Long, List<DependencyTakeCourseDto>> getUserCourseGraph(Long takenCourseId) {
-		TakenCourses course = takenCoursesRepository.findById(takenCourseId)
+		TakenCourses taken = takenCoursesRepository.findById(takenCourseId)
 				.orElseThrow(() -> new RuntimeException("не существует такого выбранного курса"));
-		Long courseId = course.getCourse().getId();
-		List<Long> moduleIds = moduleRepository.findByCourseIdOrderById(courseId).stream()
-				.map(module -> module.getId()).toList();
+		Long courseId = taken.getCourse().getId();
+
+		List<Module> modules = moduleRepository.findByCourseIdOrderById(courseId);
+		List<Dependencies> allDeps = dependencyRepository.findAllByCourseId(courseId);
+		List<ProgressModule> allProgress = progressModuleRepository
+				.findAllByTakenCourseId(takenCourseId);
+
+		Map<Long, List<Dependencies>> depsByMain = new HashMap<>();
+		for (Dependencies dep : allDeps) {
+			Long mainId = dep.getMainModule().getId();
+			depsByMain.computeIfAbsent(mainId, k -> new ArrayList<>()).add(dep);
+		}
+
+		Map<Long, List<Long>> blockersByModule = new HashMap<>();
+		for (Dependencies dep : allDeps) {
+			Long blockedId = dep.getBlockedModule().getId();
+			blockersByModule.computeIfAbsent(blockedId, k -> new ArrayList<>())
+					.add(dep.getMainModule().getId());
+		}
+
+		Map<Long, Float> progressByModule = new HashMap<>();
+		for (ProgressModule pm : allProgress) {
+			progressByModule.put(pm.getModule().getId(), pm.getProgress());
+		}
+
+		Map<Long, Boolean> isOpen = new HashMap<>();
+		for (Module module : modules) {
+			Long moduleId = module.getId();
+			List<Long> blockers = blockersByModule.getOrDefault(moduleId, List.of());
+			boolean flag = true;
+			for (Long blockerId : blockers) {
+				if (progressByModule.get(blockerId) < 97f) {
+					flag = false;
+					break;
+				}
+			}
+			isOpen.put(moduleId, flag);
+		}
+
 		HashMap<Long, List<DependencyTakeCourseDto>> graph = new HashMap<>();
-		for (Long id : moduleIds) {
-			List<DependencyTakeCourseDto> deps = dependencyRepository.findByMainModuleId(id)
-					.stream()
-					.map(dependencies -> new DependencyTakeCourseDto(dependencies.getId(),
-							dependencies.getBlockedModule().getId(),
-							dependencies.getBlockedModule().getName(),
-							checkIsOpen(takenCourseId, dependencies.getBlockedModule().getId())))
-					.toList();
-			graph.put(id, deps);
+		for (Module module : modules) {
+			Long id = module.getId();
+			List<Dependencies> deps = depsByMain.getOrDefault(id, List.of());
+			List<DependencyTakeCourseDto> dtos = new ArrayList<>();
+			for (Dependencies dep : deps) {
+				Long blockedId = dep.getBlockedModule().getId();
+				dtos.add(new DependencyTakeCourseDto(dep.getId(), blockedId,
+						dep.getBlockedModule().getName(), isOpen.get(blockedId)));
+			}
+			graph.put(id, dtos);
 		}
 		return graph;
 	}
