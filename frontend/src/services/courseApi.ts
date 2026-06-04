@@ -74,8 +74,9 @@ export const getModuleById = async (moduleId: number) => {
   return res.data;
 };
 
-export const getAllCourses = async () => {
-  const res = await api.get('/course/all');
+export const getAllCourses = async (search?: string) => {
+  const params = search && search.trim() ? { search: search.trim() } : {};
+  const res = await api.get('/course/all', { params });
   return res.data;
 };
 

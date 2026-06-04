@@ -12,9 +12,22 @@ import java.util.List;
 
 @Repository
 public interface CourseRepository extends JpaRepository<Courses, Long> {
+
 	@Query("SELECT c FROM Courses c JOIN c.roles r WHERE r.user.id = :userId AND r.course_role = :role")
 	List<Courses> findByUserIdAndRole(@Param("userId") Long userId, @Param("role") String role);
 
 	@Query("SELECT c FROM Courses c JOIN c.roles r WHERE r.user = :user")
 	List<Courses> findByUser(@Param("user") Users user);
+
+	@Query(value = """
+			SELECT * FROM courses
+			WHERE name ILIKE '%' || :q || '%'
+			   OR description ILIKE '%' || :q || '%'
+			   OR similarity(name, :q) > 0.15
+			   OR similarity(description, :q) > 0.15
+			ORDER BY
+			    similarity(name, :q) DESC,
+			    similarity(description, :q) DESC
+			""", nativeQuery = true)
+	List<Courses> searchByQuery(@Param("q") String q);
 }

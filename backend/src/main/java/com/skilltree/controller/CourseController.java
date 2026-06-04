@@ -31,8 +31,9 @@ public class CourseController {
 	}
 
 	@GetMapping("/all")
-	public ResponseEntity<List<CourseSimpleDto>> getAll() {
-		return ResponseEntity.ok(courseService.getAllCourseSimpleDto());
+	public ResponseEntity<List<CourseSimpleDto>> getAll(
+			@RequestParam(required = false) String search) {
+		return ResponseEntity.ok(courseService.getAllCourseSimpleDto(search));
 	}
 
 	@GetMapping("/my/{role}")
