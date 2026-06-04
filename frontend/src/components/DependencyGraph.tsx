@@ -6,6 +6,8 @@ import ReactFlow, {
     useNodesState,
     useEdgesState,
     MarkerType,
+    ConnectionMode,
+    ConnectionLineType,
 } from 'reactflow';
 import type { Node, Connection, Edge } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -35,15 +37,15 @@ interface DependencyGraphProps {
 }
 
 const DependencyGraph: React.FC<DependencyGraphProps> = ({
-                                                             modules,
-                                                             dependencies,
-                                                             onNodeClick,
-                                                             onNodeDragStop,
-                                                             readOnly = false,
-                                                             getNodeStyle,
-                                                             onConnect,
-                                                             onEdgeClick,
-                                                         }) => {
+    modules,
+    dependencies,
+    onNodeClick,
+    onNodeDragStop,
+    readOnly = false,
+    getNodeStyle,
+    onConnect,
+    onEdgeClick,
+}) => {
     const safeModules = Array.isArray(modules) ? modules : [];
     const safeDependencies = Array.isArray(dependencies) ? dependencies : [];
 
@@ -67,6 +69,7 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({
                     position: { x, y },
                     style: { ...baseStyle, ...customStyle },
                     draggable: !readOnly,
+                    connectable: !readOnly,
                 };
             });
     }, [safeModules, getNodeStyle, readOnly]);
@@ -81,8 +84,9 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({
                 type: 'smoothstep',
                 markerEnd: { type: MarkerType.ArrowClosed },
                 data: { dependencyId: dep.id },
+                style: readOnly ? {} : { cursor: 'pointer' },
             }));
-    }, [safeDependencies]);
+    }, [safeDependencies, readOnly]);
 
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -132,28 +136,48 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({
     };
 
     if (initialNodes.length === 0) {
-        return <div style={{ padding: '20px', textAlign: 'center', color: '#888' }}>Нет модулей для отображения графа</div>;
+        return (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#888' }}>
+                Нет модулей для отображения графа
+            </div>
+        );
     }
 
     return (
         <div style={{ width: '100%', height: '500px', border: '1px solid #ddd', borderRadius: '8px' }}>
-            <ReactFlow
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onNodeClick={handleNodeClick}
-                onNodeDragStop={handleNodeDragStop}
-                onConnect={handleConnect}
-                onEdgeClick={handleEdgeClick}
-                nodesDraggable={!readOnly}
-                fitView
-                attributionPosition="bottom-right"
-            >
-                <Background />
-                <Controls />
-                <MiniMap />
-            </ReactFlow>
+            {!readOnly && (
+                <div style={{
+                    padding: '6px 12px',
+                    background: '#f8f9fa',
+                    borderBottom: '1px solid #ddd',
+                    borderRadius: '8px 8px 0 0',
+                    fontSize: '13px',
+                    color: '#555',
+                }}>
+                    💡 Потяните от края узла к другому, чтобы добавить зависимость. Нажмите на стрелку, чтобы удалить.
+                </div>
+            )}
+            <div style={{ width: '100%', height: readOnly ? '500px' : 'calc(500px - 33px)' }}>
+                <ReactFlow
+                    nodes={nodes}
+                    edges={edges}
+                    onNodesChange={onNodesChange}
+                    onEdgesChange={onEdgesChange}
+                    onNodeClick={handleNodeClick}
+                    onNodeDragStop={handleNodeDragStop}
+                    onConnect={handleConnect}
+                    onEdgeClick={handleEdgeClick}
+                    nodesDraggable={!readOnly}
+                    connectionMode={ConnectionMode.Loose}
+                    connectionLineType={ConnectionLineType.SmoothStep}
+                    fitView
+                    attributionPosition="bottom-right"
+                >
+                    <Background />
+                    <Controls />
+                    <MiniMap />
+                </ReactFlow>
+            </div>
         </div>
     );
 };

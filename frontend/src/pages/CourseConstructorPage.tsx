@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     getCourseById,
@@ -47,6 +47,9 @@ const CourseConstructorPage: React.FC = () => {
     const [loadingDeps, setLoadingDeps] = useState(false);
     const [viewMode, setViewMode] = useState<'list' | 'graph'>('list');
 
+    const dragIndex = useRef<number | null>(null);
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
     useEffect(() => {
         loadCourseAndModules();
     }, [courseId]);
@@ -64,7 +67,11 @@ const CourseConstructorPage: React.FC = () => {
 
             setCourseName(course.name);
             setCourseDescription(course.description);
-            setModules((modulesData || []).map((m: any) => ({
+
+            const sorted = [...(modulesData || [])].sort(
+                (a: any, b: any) => a.moduleId - b.moduleId
+            );
+            setModules(sorted.map((m: any) => ({
                 ...m,
                 positionX: m.x,
                 positionY: m.y,
@@ -87,7 +94,6 @@ const CourseConstructorPage: React.FC = () => {
         setLoadingDeps(true);
         try {
             const graph = await getAllCourseDependencies(Number(courseId));
-            console.log('Raw graph data:', graph);
 
             const flatDeps: Dependency[] = [];
             for (const [blockerId, blockedList] of Object.entries(graph)) {
@@ -193,6 +199,33 @@ const CourseConstructorPage: React.FC = () => {
         }
     }, []);
 
+    const handleDragStart = (index: number) => {
+        dragIndex.current = index;
+    };
+
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+        e.preventDefault();
+        setDragOverIndex(index);
+    };
+
+    const handleDrop = (dropIndex: number) => {
+        if (dragIndex.current === null || dragIndex.current === dropIndex) {
+            setDragOverIndex(null);
+            return;
+        }
+        const reordered = [...modules];
+        const [moved] = reordered.splice(dragIndex.current, 1);
+        reordered.splice(dropIndex, 0, moved);
+        setModules(reordered);
+        dragIndex.current = null;
+        setDragOverIndex(null);
+    };
+
+    const handleDragEnd = () => {
+        dragIndex.current = null;
+        setDragOverIndex(null);
+    };
+
     const graphModules = useMemo(() => modules
             .filter(m => m && m.moduleId)
             .map(m => ({
@@ -203,13 +236,6 @@ const CourseConstructorPage: React.FC = () => {
             })),
         [modules]
     );
-
-    // const graphModules = useMemo(() => [
-    //     { id: 34, name: 'Модуль 34', x: 50, y: 50 },
-    //     { id: 35, name: 'Модуль 35', x: 300, y: 100 },
-    //     { id: 36, name: 'Модуль 36', x: 150, y: 200 },
-    //     { id: 37, name: 'Модуль 37', x: 400, y: 250 },
-    // ], []);
 
     const graphEdges = useMemo(() => dependencies
             .filter(d => d && d.id && d.blockerId && d.dependentId)
@@ -261,44 +287,65 @@ const CourseConstructorPage: React.FC = () => {
             {modules.length === 0 ? (
                 <p>В курсе пока нет модулей. Создайте первый модуль!</p>
             ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {modules.map(module => (
-                        <div
-                            key={module.moduleId}
-                            style={{
-                                border: '1px solid #ddd',
-                                borderRadius: '8px',
-                                padding: '16px',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                transition: 'box-shadow 0.2s',
-                                cursor: 'pointer',
-                            }}
-                            onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)')}
-                            onMouseLeave={(e) => (e.currentTarget.style.boxShadow = 'none')}
-                            onClick={() => handleModuleClick(module.moduleId)}
-                        >
-                            <div style={{ flex: 1 }}>
-                                <strong>{module.name}</strong>
-                            </div>
-                            <button
-                                onClick={(e) => { e.stopPropagation(); handleDeleteModule(module.moduleId); }}
+                <>
+                    <p style={{ fontSize: '13px', color: '#888', marginBottom: '8px' }}>
+                        Перетащите модули, чтобы изменить порядок
+                    </p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {modules.map((module, index) => (
+                            <div
+                                key={module.moduleId}
+                                draggable
+                                onDragStart={() => handleDragStart(index)}
+                                onDragOver={(e) => handleDragOver(e, index)}
+                                onDrop={() => handleDrop(index)}
+                                onDragEnd={handleDragEnd}
                                 style={{
-                                    background: '#dc3545',
-                                    color: 'white',
-                                    border: 'none',
-                                    padding: '6px 12px',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    marginLeft: '12px',
+                                    border: dragOverIndex === index
+                                        ? '2px dashed #007bff'
+                                        : '1px solid #ddd',
+                                    borderRadius: '8px',
+                                    padding: '16px',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    transition: 'box-shadow 0.2s, border-color 0.15s',
+                                    cursor: 'grab',
+                                    background: dragOverIndex === index ? '#f0f7ff' : '#fff',
+                                    userSelect: 'none',
                                 }}
+                                onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)')}
+                                onMouseLeave={(e) => (e.currentTarget.style.boxShadow = 'none')}
                             >
-                                Удалить
-                            </button>
-                        </div>
-                    ))}
-                </div>
+                                <span style={{ color: '#bbb', marginRight: '12px', fontSize: '18px', cursor: 'grab' }}>
+                                    ⠿
+                                </span>
+
+                                <div
+                                    style={{ flex: 1, cursor: 'pointer' }}
+                                    onClick={() => handleModuleClick(module.moduleId)}
+                                >
+                                    <strong>{module.name}</strong>
+                                </div>
+
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); handleDeleteModule(module.moduleId); }}
+                                    style={{
+                                        background: '#dc3545',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '6px 12px',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        marginLeft: '12px',
+                                    }}
+                                >
+                                    Удалить
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </>
             )}
 
             <div style={{ marginTop: '32px', borderTop: '2px solid #ddd', paddingTop: '20px' }}>
