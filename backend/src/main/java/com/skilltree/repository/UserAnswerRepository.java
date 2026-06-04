@@ -23,4 +23,9 @@ public interface UserAnswerRepository extends JpaRepository<UserAnswers, Long> {
 			+ "WHERE ua.progress_module = :progressModule AND ua.isCorrect = true")
 	long countDistinctCorrectTasksByProgressModule(
 			@Param("progressModule") ProgressModule progressModule);
+
+	@Query("SELECT COALESCE(SUM(t.score), 0) FROM Task t " + "WHERE t.id IN ("
+			+ "  SELECT DISTINCT ua.task.id FROM UserAnswers ua "
+			+ "  WHERE ua.progress_module = :progressModule AND ua.isCorrect = true" + ")")
+	long sumScoreOfDistinctCorrectTasks(@Param("progressModule") ProgressModule progressModule);
 }

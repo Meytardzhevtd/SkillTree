@@ -67,7 +67,6 @@ public class TaskSubmissionService {
 				request.progressModuleId(), correct);
 
 		if (correct && !alreadySolved) {
-			// провека про начисление баллов есть в scoresService
 			Long userId = progressModule.getTaken_courses().getUser().getId();
 			scoresService.add(userId, taskId);
 			recalculateModuleProgress(progressModule);
@@ -85,20 +84,19 @@ public class TaskSubmissionService {
 	}
 
 	private void recalculateModuleProgress(ProgressModule progressModule) {
-		long totalTasks = taskRepository.findByModule(progressModule.getModule()).size();
+		long totalScore = taskRepository.sumScoreByModule(progressModule.getModule());
 
-		if (totalTasks == 0)
+		if (totalScore == 0)
 			return;
 
-		long solvedTasks = userAnswerRepository
-				.countDistinctCorrectTasksByProgressModule(progressModule);
+		long solvedScore = userAnswerRepository.sumScoreOfDistinctCorrectTasks(progressModule);
 
-		float newProgress = (float) solvedTasks / totalTasks * 100;
+		float newProgress = (float) solvedScore / totalScore * 100;
 		progressModule.setProgress(newProgress);
 		progressModuleRepository.save(progressModule);
 
-		log.info("Прогресс модуля id={} обновлён: {}/{}={}%", progressModule.getId(), solvedTasks,
-				totalTasks, newProgress);
+		log.info("Прогресс модуля id={} обновлен: {}/{}={}%", progressModule.getId(), solvedScore,
+				totalScore, newProgress);
 	}
 
 	private void recalculateCourseProgress(TakenCourses takenCourses) {
@@ -107,26 +105,25 @@ public class TaskSubmissionService {
 		if (allProgressModules.isEmpty())
 			return;
 
-		long totalTasksInCourse = 0;
-		long solvedTasksInCourse = 0;
+		long totalScoreInCourse = 0;
+		long solvedScoreInCourse = 0;
 
 		for (ProgressModule pm : allProgressModules) {
-			long totalInModule = taskRepository.findByModule(pm.getModule()).size();
-			long solvedInModule = userAnswerRepository
-					.countDistinctCorrectTasksByProgressModule(pm);
-			totalTasksInCourse += totalInModule;
-			solvedTasksInCourse += solvedInModule;
+			long totalInModule = taskRepository.sumScoreByModule(pm.getModule());
+			long solvedInModule = userAnswerRepository.sumScoreOfDistinctCorrectTasks(pm);
+			totalScoreInCourse += totalInModule;
+			solvedScoreInCourse += solvedInModule;
 		}
 
-		float courseProgress = totalTasksInCourse == 0
+		float courseProgress = totalScoreInCourse == 0
 				? 0
-				: (float) solvedTasksInCourse / totalTasksInCourse * 100;
+				: (float) solvedScoreInCourse / totalScoreInCourse * 100;
 
 		takenCourses.setProgress(courseProgress);
 		takenCoursesRepository.save(takenCourses);
 
-		log.info("Прогресс курса takenCourseId={} обновлён: {}/{}={}%", takenCourses.getId(),
-				solvedTasksInCourse, totalTasksInCourse, courseProgress);
+		log.info("Прогресс курса takenCourseId={} обновлен: {}/{}={}%", takenCourses.getId(),
+				solvedScoreInCourse, totalScoreInCourse, courseProgress);
 	}
 
 	private List<TaskSimpleDto> getTaskStatuses(ProgressModule progressModule) {
@@ -178,6 +175,6 @@ public class TaskSubmissionService {
 					? "Верно! Эта задача уже была решена ранее."
 					: "Неверно, но эта задача уже была решена ранее.";
 		}
-		return correct ? "Верно!" : "Неверно, попробуй ещё раз.";
+		return correct ? "Верно!" : "Неверно, попробуй еще раз.";
 	}
 }
