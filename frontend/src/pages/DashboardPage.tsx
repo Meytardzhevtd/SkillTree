@@ -16,7 +16,6 @@ function DashboardPage() {
   const [saveMessage, setSaveMessage] = useState('')
 
   const [avatarUrl, setAvatarUrl] = useState<string>('')
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
@@ -68,27 +67,24 @@ function DashboardPage() {
     }
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0])
-    }
-  }
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
 
-  const handleUploadAvatar = async () => {
-    if (!selectedFile) {
-      setSaveMessage('Выберите файл')
-      return
-    }
     setUploading(true)
     setSaveMessage('')
     try {
-      await uploadAvatar(selectedFile)
-      window.location.reload()
+      await uploadAvatar(file)
+      const freshUrl = await getMyAvatar()
+      if (freshUrl && freshUrl !== 'No avatar') {
+        setAvatarUrl(freshUrl)
+      }
+      setSaveMessage('Аватарка обновлена')
     } catch (err: any) {
-      setSaveMessage(err.message || 'Ошибка загрузки')
-      setUploading(false)
+      setSaveMessage(err.message || 'Ошибка загрузки аватарки')
     } finally {
       setUploading(false)
+      e.target.value = ''
     }
   }
 
@@ -111,7 +107,9 @@ function DashboardPage() {
                   height: '170px',
                   borderRadius: '50%',
                   objectFit: 'cover',
-                  border: '3px solid #007bff'
+                  border: '3px solid #007bff',
+                  display: 'block',
+                  margin: '0 auto',
                 }}
               />
             ) : (
@@ -126,7 +124,7 @@ function DashboardPage() {
                   justifyContent: 'center',
                   color: 'white',
                   fontSize: '48px',
-                  margin: '0 auto'
+                  margin: '0 auto',
                 }}
               >
                 {profile.username.charAt(0).toUpperCase()}
@@ -134,15 +132,27 @@ function DashboardPage() {
             )}
 
             <div style={{ marginTop: '12px' }}>
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/gif"
-                onChange={handleFileChange}
-                style={{ marginRight: '8px' }}
-              />
-              <button onClick={handleUploadAvatar} disabled={uploading || !selectedFile}>
-                {uploading ? 'Загрузка...' : 'Загрузить аватарку'}
-              </button>
+              <label
+                style={{
+                  display: 'inline-block',
+                  padding: '8px 16px',
+                  background: uploading ? '#6c757d' : '#007bff',
+                  color: 'white',
+                  borderRadius: '6px',
+                  cursor: uploading ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  transition: 'background 0.2s',
+                }}
+              >
+                {uploading ? 'Загрузка...' : '📷 Обновить аватарку'}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif"
+                  onChange={handleFileChange}
+                  disabled={uploading}
+                  style={{ display: 'none' }}
+                />
+              </label>
             </div>
           </div>
 
@@ -151,7 +161,6 @@ function DashboardPage() {
             <p><strong>Username:</strong> {profile.username}</p>
             <p><strong>Email:</strong> {profile.email}</p>
             <p><strong>Role:</strong> {profile.role}</p>
-            <p>🎯 Всего баллов: {profile.totalScore}</p>
 
             <div style={{ marginTop: '16px' }}>
               <label htmlFor="username-edit"><strong>Изменить username</strong></label>
@@ -171,7 +180,10 @@ function DashboardPage() {
                 {saving ? 'Сохранение...' : 'Сохранить'}
               </button>
               {saveMessage && (
-                <p style={{ marginTop: '8px', color: saveMessage.includes('ошибка') || saveMessage.includes('Ошибка') ? 'red' : 'green' }}>
+                <p style={{
+                  marginTop: '8px',
+                  color: saveMessage.includes('Ошибка') || saveMessage.includes('ошибка') ? 'red' : 'green'
+                }}>
                   {saveMessage}
                 </p>
               )}

@@ -16,4 +16,7 @@ public interface ProgressModuleRepository extends JpaRepository<ProgressModule, 
 
 	@Query("SELECT pm FROM ProgressModule pm WHERE pm.module.id = :moduleId")
 	List<ProgressModule> findByModuleId(@Param("moduleId") Long moduleId);
+
+	@Query("SELECT pm FROM ProgressModule pm WHERE pm.taken_courses.id = :takenCourseId")
+	List<ProgressModule> findAllByTakenCourseId(@Param("takenCourseId") Long takenCourseId);
 }

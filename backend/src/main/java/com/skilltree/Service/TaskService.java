@@ -162,23 +162,23 @@ public class TaskService {
 	}
 
 	private void recalculateAllProgressesForModule(Module module) {
-		long totalTasks = taskRepository.findByModule(module).size();
+		long totalScore = taskRepository.sumScoreByModule(module);
 
 		List<ProgressModule> progressModules = progressModuleRepository
 				.findByModuleId(module.getId());
 
 		Set<Long> affectedTakenCourseIds = new HashSet<>();
 		for (ProgressModule pm : progressModules) {
-			if (totalTasks == 0) {
+			if (totalScore == 0) {
 				pm.setProgress(0.0f);
 			} else {
-				long solved = userAnswerRepository.countDistinctCorrectTasksByProgressModule(pm);
-				pm.setProgress((float) solved / totalTasks * 100);
+				long solvedScore = userAnswerRepository.sumScoreOfDistinctCorrectTasks(pm);
+				pm.setProgress((float) solvedScore / totalScore * 100);
 			}
 			progressModuleRepository.save(pm);
 			affectedTakenCourseIds.add(pm.getTaken_courses().getId());
 
-			log.info("Пересчёт прогресса модуля id={} для takenCourseId={}: {}%", module.getId(),
+			log.info("Пересчет прогресса модуля id={} для takenCourseId={}: {}%", module.getId(),
 					pm.getTaken_courses().getId(), pm.getProgress());
 		}
 
@@ -196,26 +196,25 @@ public class TaskService {
 		if (allModules.isEmpty())
 			return;
 
-		long totalTasksInCourse = 0;
-		long solvedTasksInCourse = 0;
+		long totalScoreInCourse = 0;
+		long solvedScoreInCourse = 0;
 
 		for (ProgressModule pm : allModules) {
-			long totalInModule = taskRepository.findByModule(pm.getModule()).size();
-			long solvedInModule = userAnswerRepository
-					.countDistinctCorrectTasksByProgressModule(pm);
-			totalTasksInCourse += totalInModule;
-			solvedTasksInCourse += solvedInModule;
+			long totalInModule = taskRepository.sumScoreByModule(pm.getModule());
+			long solvedInModule = userAnswerRepository.sumScoreOfDistinctCorrectTasks(pm);
+			totalScoreInCourse += totalInModule;
+			solvedScoreInCourse += solvedInModule;
 		}
 
-		float courseProgress = totalTasksInCourse == 0
+		float courseProgress = totalScoreInCourse == 0
 				? 0
-				: (float) solvedTasksInCourse / totalTasksInCourse * 100;
+				: (float) solvedScoreInCourse / totalScoreInCourse * 100;
 
 		takenCourses.setProgress(courseProgress);
 		takenCoursesRepository.save(takenCourses);
 
-		log.info("Прогресс курса takenCourseId={} обновлён: {}/{}={}%", takenCourses.getId(),
-				solvedTasksInCourse, totalTasksInCourse, courseProgress);
+		log.info("Прогресс курса takenCourseId={} обновлен: {}/{}={}%", takenCourses.getId(),
+				solvedScoreInCourse, totalScoreInCourse, courseProgress);
 	}
 
 	private void checkAdminAccess(Long courseId) {

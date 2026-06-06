@@ -72,8 +72,12 @@ public class CourseService {
 		return courseRepository.findAll().stream().map(CourseDto::new).toList();
 	}
 
-	public List<CourseSimpleDto> getAllCourseSimpleDto() {
-		return courseRepository.findAll().stream().map(CourseSimpleDto::new)
+	public List<CourseSimpleDto> getAllCourseSimpleDto(String search) {
+		if (search == null || search.isBlank()) {
+			return courseRepository.findAll().stream().map(CourseSimpleDto::new)
+					.collect(Collectors.toList());
+		}
+		return courseRepository.searchByQuery(search.trim()).stream().map(CourseSimpleDto::new)
 				.collect(Collectors.toList());
 	}
 
