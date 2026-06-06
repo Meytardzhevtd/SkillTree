@@ -19,4 +19,7 @@ public interface DependencyRepository extends JpaRepository<Dependencies, Long> 
 	@Query("SELECT d FROM Dependencies d WHERE d.mainModule.id = :mainModuleId AND d.blockedModule.id = :blockModuleId")
 	Dependencies findByMainModuleIdAndBlockedModuleId(@Param("mainModuleId") Long mainModuleId,
 			@Param("blockModuleId") Long blockModuleId);
+
+	@Query("SELECT d FROM Dependencies d WHERE d.mainModule.course.id = :courseId")
+	List<Dependencies> findAllByCourseId(@Param("courseId") Long courseId);
 }
