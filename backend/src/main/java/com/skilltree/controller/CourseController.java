@@ -5,7 +5,7 @@ import com.skilltree.dto.courses.CourseDto;
 import com.skilltree.dto.courses.CourseSimpleDto;
 import com.skilltree.dto.courses.CreateCourseRequest;
 
-import com.skilltree.dto.courses.UpdateCourse;
+import com.skilltree.dto.courses.UpdateCourseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,7 +49,7 @@ public class CourseController {
 	}
 
 	@PutMapping("/update/{id}")
-	public CourseDto updateCourse (@PathVariable Long id, @RequestBody UpdateCourse dto){
+	public CourseDto updateCourse(@PathVariable Long id, @RequestBody UpdateCourseDto dto) {
 		return courseService.updateCourse(id, dto.getName(), dto.getDescription());
 	}
 

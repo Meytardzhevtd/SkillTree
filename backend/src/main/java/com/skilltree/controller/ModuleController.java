@@ -58,7 +58,7 @@ public class ModuleController {
 	}
 
 	@PutMapping("/update/{id}")
-	public ModuleDto updateCourse (@PathVariable Long id, @RequestBody UpdateModule dto){
+	public ModuleDto updateCourse(@PathVariable Long id, @RequestBody UpdateModuleDto dto) {
 		return moduleService.updateModule(id, dto);
 	}
 

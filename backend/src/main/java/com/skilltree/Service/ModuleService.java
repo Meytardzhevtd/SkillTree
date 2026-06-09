@@ -21,7 +21,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -190,7 +189,7 @@ public class ModuleService {
 	}
 
 	@Transactional
-	public ModuleDto updateModule(Long moduleId, UpdateModule request) {
+	public ModuleDto updateModule(Long moduleId, UpdateModuleDto request) {
 		Module module = moduleRepository.findById(moduleId)
 				.orElseThrow(() -> new ModuleNotFoundException(moduleId));
 

@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class UpdateLesson {
-    private String title;
-    private String content;
+	private String title;
+	private String content;
 }

@@ -71,7 +71,8 @@ public class LessonService {
 		}
 
 		Lesson saved = lessonRepository.save(lesson);
-		return new LessonResponse(saved.getId(), saved.getTitle(), saved.getContent(), saved.getModuleId());
+		return new LessonResponse(saved.getId(), saved.getTitle(), saved.getContent(),
+				saved.getModuleId());
 	}
 
 }
