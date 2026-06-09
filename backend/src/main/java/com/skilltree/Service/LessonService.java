@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import com.skilltree.dto.lessons.UpdateLesson;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +56,22 @@ public class LessonService {
 			lessonRepository.delete(oLesson.get());
 		}
 
+	}
+
+	@Transactional
+	public LessonResponse updateLesson(Long id, UpdateLesson request) {
+		Lesson lesson = lessonRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Урок не найден"));
+
+		if (request.getTitle() != null && !request.getTitle().isEmpty()) {
+			lesson.setTitle(request.getTitle());
+		}
+		if (request.getContent() != null && !request.getContent().isEmpty()) {
+			lesson.setContent(request.getContent());
+		}
+
+		Lesson saved = lessonRepository.save(lesson);
+		return new LessonResponse(saved.getId(), saved.getTitle(), saved.getContent(), saved.getModuleId());
 	}
 
 }
