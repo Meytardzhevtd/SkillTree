@@ -189,4 +189,29 @@ public class ModuleService {
 		moduleRepository.save(module);
 	}
 
+	@Transactional
+	public ModuleDto updateModule(Long moduleId, UpdateModule request) {
+		Module module = moduleRepository.findById(moduleId)
+				.orElseThrow(() -> new ModuleNotFoundException(moduleId));
+
+		checkAdminAccess(module.getCourse().getId());
+
+		if (request.getName() != null && !request.getName().isEmpty()) {
+			module.setName(request.getName());
+		}
+		if (request.getCanBeOpen() != null) {
+			module.setCan_be_open(request.getCanBeOpen());
+		}
+		if (request.getPositionX() != null) {
+			module.setPositionX(request.getPositionX());
+		}
+		if (request.getPositionY() != null) {
+			module.setPositionY(request.getPositionY());
+		}
+
+		Module saved = moduleRepository.save(module);
+
+		return new ModuleDto(saved);
+	}
+
 }

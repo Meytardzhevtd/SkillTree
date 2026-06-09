@@ -57,4 +57,9 @@ public class ModuleController {
 		return ResponseEntity.ok().build();
 	}
 
+	@PutMapping("/update/{id}")
+	public ModuleDto updateCourse (@PathVariable Long id, @RequestBody UpdateModule dto){
+		return moduleService.updateModule(id, dto);
+	}
+
 }
