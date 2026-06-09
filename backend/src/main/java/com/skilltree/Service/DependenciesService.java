@@ -13,10 +13,7 @@ import com.skilltree.repository.TakenCoursesRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -194,4 +191,51 @@ public class DependenciesService {
 		return graph;
 	}
 
+	@Transactional
+	public boolean updateDependency(Long idDependency, Long mainModuleId, Long blockedModuleId) {
+		Module main = moduleRepository.findById(mainModuleId).orElseThrow(
+				() -> new RuntimeException("Модуль с id " + mainModuleId + " не найден"));
+		Module blocked = moduleRepository.findById(blockedModuleId).orElseThrow(
+				() -> new RuntimeException("Модуль с id " + blockedModuleId + " не найден"));
+
+		if (!main.getCourse().getId().equals(blocked.getCourse().getId())) {
+			throw new RuntimeException("Модули с id " + mainModuleId + " и " + blockedModuleId
+					+ "находятся в разных курсах, нельзя сделать зависимость");
+		}
+
+		Dependencies dep = dependencyRepository.findById(idDependency)
+				.orElseThrow(() -> new RuntimeException("Такой зависимости нет"));
+
+		if (mainModuleId.equals(blockedModuleId)) {
+			throw new RuntimeException("Зависимость указывает на самого себя");
+		}
+
+		HashMap<Long, List<Long>> graph = makeTree(blockedModuleId);
+
+		List<Long> neighbors = graph.get(dep.getMainModule().getId());
+		if (neighbors != null) {
+			neighbors.remove(dep.getBlockedModule().getId());
+		}
+
+		if (!checkForCycles(blockedModuleId, mainModuleId, graph)) {
+			if (graph.containsKey(mainModuleId)) {
+				if (!checkForModule(mainModuleId, blockedModuleId, graph)) {
+					graph.get(mainModuleId).add(blockedModuleId);
+				} else {
+					throw new RuntimeException("Зависимость между" + mainModuleId + " и "
+							+ blockedModuleId + " уже существует");
+				}
+			} else {
+				graph.put(mainModuleId, new ArrayList<>(List.of(blockedModuleId)));
+			}
+		} else {
+			throw new RuntimeException("Модули с id " + mainModuleId
+					+ " уже зависит от модуля с id " + blockedModuleId + " образовывается цикл");
+		}
+
+		dep.setMainModule(main);
+		dep.setBlockedModule(blocked);
+		dependencyRepository.save(dep);
+		return true;
+	}
 }
