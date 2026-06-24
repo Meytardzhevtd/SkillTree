@@ -172,7 +172,7 @@ const CourseConstructorPage: React.FC = () => {
     }, [modules]);
 
     // Обработчик удаления зависимости через граф
-    const handleGraphEdgeClick = useCallback(async (edgeId: string, dependencyId: number) => {
+    const handleGraphEdgeClick = useCallback(async (_edgeId: string, dependencyId: number) => {
         try {
             await deleteDependency(dependencyId);
             await loadDependencies(modules);
