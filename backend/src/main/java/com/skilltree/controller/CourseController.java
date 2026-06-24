@@ -5,6 +5,7 @@ import com.skilltree.dto.courses.CourseDto;
 import com.skilltree.dto.courses.CourseSimpleDto;
 import com.skilltree.dto.courses.CreateCourseRequest;
 
+import com.skilltree.dto.courses.UpdateCourseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,4 +47,10 @@ public class CourseController {
 		String role = courseService.getMyRoleInCourse(id);
 		return ResponseEntity.ok(Map.of("role", role != null ? role : "none"));
 	}
+
+	@PutMapping("/update/{id}")
+	public CourseDto updateCourse(@PathVariable Long id, @RequestBody UpdateCourseDto dto) {
+		return courseService.updateCourse(id, dto.getName(), dto.getDescription());
+	}
+
 }

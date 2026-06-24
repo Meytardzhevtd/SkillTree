@@ -21,7 +21,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -187,6 +186,31 @@ public class ModuleService {
 		module.setPositionX(x);
 		module.setPositionY(y);
 		moduleRepository.save(module);
+	}
+
+	@Transactional
+	public ModuleDto updateModule(Long moduleId, UpdateModuleDto request) {
+		Module module = moduleRepository.findById(moduleId)
+				.orElseThrow(() -> new ModuleNotFoundException(moduleId));
+
+		checkAdminAccess(module.getCourse().getId());
+
+		if (request.getName() != null && !request.getName().isEmpty()) {
+			module.setName(request.getName());
+		}
+		if (request.getCanBeOpen() != null) {
+			module.setCan_be_open(request.getCanBeOpen());
+		}
+		if (request.getPositionX() != null) {
+			module.setPositionX(request.getPositionX());
+		}
+		if (request.getPositionY() != null) {
+			module.setPositionY(request.getPositionY());
+		}
+
+		Module saved = moduleRepository.save(module);
+
+		return new ModuleDto(saved);
 	}
 
 }

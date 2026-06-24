@@ -124,4 +124,21 @@ public class CourseService {
 		}
 		return null;
 	}
+
+	@Transactional
+	public CourseDto updateCourse(Long id, String name, String description) {
+		Courses course = courseRepository.findById(id)
+				.orElseThrow(() -> new CourseNotFoundException(id));
+
+		if (name != null && !name.isEmpty()) {
+			course.setName(name);
+		}
+		if (description != null && !description.isEmpty()) {
+			course.setDescription(description);
+		}
+
+		Courses updated = courseRepository.save(course);
+		return new CourseDto(updated);
+	}
+
 }

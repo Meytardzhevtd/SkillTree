@@ -2,14 +2,9 @@ package com.skilltree.controller;
 
 import java.util.List;
 
+import com.skilltree.dto.lessons.UpdateLesson;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.skilltree.Service.LessonService;
 import com.skilltree.dto.lessons.CreateLessonRequest;
@@ -43,5 +38,11 @@ public class LessonController {
 	@DeleteMapping("/{id}")
 	public void delete(@PathVariable Long id) {
 		lessonService.delete(id);
+	}
+
+	@PutMapping("/{id}")
+	public ResponseEntity<LessonResponse> updateLesson(@PathVariable Long id,
+			@RequestBody UpdateLesson request) {
+		return ResponseEntity.ok(lessonService.updateLesson(id, request));
 	}
 }

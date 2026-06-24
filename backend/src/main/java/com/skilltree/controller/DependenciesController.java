@@ -3,6 +3,7 @@ package com.skilltree.controller;
 import com.skilltree.Service.DependenciesService;
 import com.skilltree.dto.dependencies.DependencyConstructorDto;
 import com.skilltree.dto.dependencies.DependencyTakeCourseDto;
+import com.skilltree.dto.dependencies.UpdateDependencyDto;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -38,6 +39,11 @@ public class DependenciesController {
 	public HashMap<Long, List<DependencyConstructorDto>> getGraphByCourse(
 			@PathVariable Long idCourse) {
 		return dependenciesService.getCourseGraph(idCourse);
+	}
+
+	@PutMapping("/update/{id}")
+	public void update(@PathVariable Long id, @RequestBody UpdateDependencyDto dto) {
+		dependenciesService.updateDependency(id, dto.getMainModuleId(), dto.getBlockedModuleId());
 	}
 
 }
