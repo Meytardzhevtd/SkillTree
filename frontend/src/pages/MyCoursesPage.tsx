@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getMyCoursesByRole, getMyTakenCourses } from '../services/courseApi';
+import { getMyCoursesByRole, getMyTakenCourses, deleteCourse } from '../services/courseApi';
 import { getToken } from '../services/authStorage';
 interface CreatedCourse {
     courseId: number;
@@ -48,7 +48,6 @@ const handleImportCourse = async (event: React.ChangeEvent<HTMLInputElement>) =>
         const data = await response.json();
         if (response.ok) {
             alert(`Курс успешно импортирован! ID: ${data.courseId}`);
-            // Перезагрузить страницу или обновить список курсов
             window.location.reload();
         } else {
             alert(`Ошибка: ${data.error}`);
@@ -86,6 +85,20 @@ const MyCoursesPage: React.FC = () => {
         loadCourses();
     }, []);
 
+    const handleDeleteCourse = async (courseId: number, title: string) => {
+        if (!confirm(`Вы уверены, что хотите удалить курс "${title}"? Это действие необратимо.`)) {
+            return;
+        }
+        try {
+            await deleteCourse(courseId);
+            setCreatedCourses(prev => prev.filter(c => c.courseId !== courseId));
+            alert('Курс успешно удалён');
+        } catch (err: any) {
+            console.error(err);
+            alert(err.response?.data || 'Ошибка при удалении курса');
+        }
+    };
+
     if (loading) return <p>Загрузка курсов...</p>;
     if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
@@ -112,11 +125,43 @@ const MyCoursesPage: React.FC = () => {
             {activeTab === 'created' && createdCourses.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     {createdCourses.map((course) => (
-                        <div key={course.courseId} style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '16px' }} onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'} onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}>
-                            <Link to={`/course/${course.courseId}/edit`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                                <h2 style={{ margin: '0 0 8px 0', color: '#007bff' }}>{course.title}</h2>
+                        <div
+                            key={course.courseId}
+                            style={{
+                                border: '1px solid #ddd',
+                                borderRadius: '8px',
+                                padding: '16px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                transition: 'box-shadow 0.2s',
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.boxShadow = 'none')}
+                        >
+                            <Link
+                                to={`/course/${course.courseId}/edit`}
+                                style={{ textDecoration: 'none', color: 'inherit', flex: 1 }}
+                            >
+                                <h2 style={{ margin: '0 0 4px 0', color: '#007bff' }}>{course.title}</h2>
                                 <p style={{ margin: 0, color: '#666' }}>{course.description}</p>
                             </Link>
+                            <button
+                                onClick={() => handleDeleteCourse(course.courseId, course.title)}
+                                style={{
+                                    padding: '6px 16px',
+                                    background: '#dc3545',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    whiteSpace: 'nowrap',
+                                    marginLeft: '16px',
+                                    flexShrink: 0,
+                                }}
+                            >
+                                Удалить курс
+                            </button>
                         </div>
                     ))}
                 </div>

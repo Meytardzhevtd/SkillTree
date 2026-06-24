@@ -141,4 +141,24 @@ public class CourseService {
 		return new CourseDto(updated);
 	}
 
+	@Transactional
+	public void deleteCourse(Long courseId) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth == null || !auth.isAuthenticated()) {
+			throw new RuntimeException("Пользователь не авторизован");
+		}
+		String email = auth.getName();
+		Users user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new UserNotFoundException(1L));
+		boolean isAdmin = rolesRepository.existsByCourseIdAndUserIdAndRole(courseId, user.getId(),
+				"admin");
+		if (!isAdmin) {
+			throw new RuntimeException("Только администратор курса может удалить курс");
+		}
+
+		Courses course = courseRepository.findById(courseId)
+				.orElseThrow(() -> new CourseNotFoundException(courseId));
+		courseRepository.delete(course);
+	}
+
 }
