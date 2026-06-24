@@ -221,13 +221,6 @@ const UserCoursePage: React.FC = () => {
                 </div>
             )}
 
-            <button
-                onClick={() => loadCourseAndModules()}
-                style={{ marginBottom: '16px', background: '#6c757d', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '4px' }}
-            >
-                🔄 Обновить данные
-            </button>
-
             <div style={{ marginBottom: '16px', display: 'flex', gap: '8px' }}>
                 <button
                     onClick={() => setStudentViewMode('list')}

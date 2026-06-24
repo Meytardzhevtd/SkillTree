@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     getCourseById,
@@ -41,14 +41,9 @@ const CourseConstructorPage: React.FC = () => {
     const [error, setError] = useState('');
     const [creating, setCreating] = useState(false);
 
+    // Состояние для зависимостей
     const [dependencies, setDependencies] = useState<Dependency[]>([]);
-    const [selectedBlocker, setSelectedBlocker] = useState<number>(0);
-    const [selectedDependent, setSelectedDependent] = useState<number>(0);
     const [loadingDeps, setLoadingDeps] = useState(false);
-    const [viewMode, setViewMode] = useState<'list' | 'graph'>('list');
-
-    const dragIndex = useRef<number | null>(null);
-    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
     useEffect(() => {
         loadCourseAndModules();
@@ -67,11 +62,7 @@ const CourseConstructorPage: React.FC = () => {
 
             setCourseName(course.name);
             setCourseDescription(course.description);
-
-            const sorted = [...(modulesData || [])].sort(
-                (a: any, b: any) => a.moduleId - b.moduleId
-            );
-            setModules(sorted.map((m: any) => ({
+            setModules((modulesData || []).map((m: any) => ({
                 ...m,
                 positionX: m.x,
                 positionY: m.y,
@@ -94,6 +85,7 @@ const CourseConstructorPage: React.FC = () => {
         setLoadingDeps(true);
         try {
             const graph = await getAllCourseDependencies(Number(courseId));
+            console.log('Raw graph data:', graph);
 
             const flatDeps: Dependency[] = [];
             for (const [blockerId, blockedList] of Object.entries(graph)) {
@@ -144,41 +136,6 @@ const CourseConstructorPage: React.FC = () => {
         }
     };
 
-    const handleAddDependency = async () => {
-        if (selectedBlocker === selectedDependent) {
-            alert('Модуль не может блокировать сам себя');
-            return;
-        }
-        if (selectedBlocker === 0 || selectedDependent === 0) {
-            alert('Выберите оба модуля');
-            return;
-        }
-        try {
-            const success = await createDependency(selectedBlocker, selectedDependent);
-            if (success) {
-                alert('Зависимость добавлена');
-                setSelectedBlocker(0);
-                setSelectedDependent(0);
-                await loadDependencies(modules);
-            } else {
-                alert('Не удалось добавить зависимость (цикл или уже существует)');
-            }
-        } catch (err: any) {
-            console.error(err);
-            alert(err.response?.data || 'Ошибка создания зависимости');
-        }
-    };
-
-    const handleDeleteDependency = async (depId: number) => {
-        if (!confirm('Удалить зависимость?')) return;
-        try {
-            await deleteDependency(depId);
-            await loadDependencies(modules);
-        } catch (err) {
-            alert('Ошибка удаления зависимости');
-        }
-    };
-
     const handleModuleClick = (moduleId: number) => {
         navigate(`/module/${moduleId}?courseId=${courseId}`);
     };
@@ -199,32 +156,31 @@ const CourseConstructorPage: React.FC = () => {
         }
     }, []);
 
-    const handleDragStart = (index: number) => {
-        dragIndex.current = index;
-    };
-
-    const handleDragOver = (e: React.DragEvent, index: number) => {
-        e.preventDefault();
-        setDragOverIndex(index);
-    };
-
-    const handleDrop = (dropIndex: number) => {
-        if (dragIndex.current === null || dragIndex.current === dropIndex) {
-            setDragOverIndex(null);
-            return;
+    // Обработчик создания зависимости через граф
+    const handleGraphConnect = useCallback(async ({ source, target }: { source: number; target: number }) => {
+        try {
+            const success = await createDependency(source, target);
+            if (success) {
+                await loadDependencies(modules);
+                return true;
+            }
+            return false;
+        } catch (err) {
+            console.error(err);
+            return false;
         }
-        const reordered = [...modules];
-        const [moved] = reordered.splice(dragIndex.current, 1);
-        reordered.splice(dropIndex, 0, moved);
-        setModules(reordered);
-        dragIndex.current = null;
-        setDragOverIndex(null);
-    };
+    }, [modules]);
 
-    const handleDragEnd = () => {
-        dragIndex.current = null;
-        setDragOverIndex(null);
-    };
+    // Обработчик удаления зависимости через граф
+    const handleGraphEdgeClick = useCallback(async (edgeId: string, dependencyId: number) => {
+        try {
+            await deleteDependency(dependencyId);
+            await loadDependencies(modules);
+        } catch (err) {
+            console.error(err);
+            alert('Ошибка удаления зависимости');
+        }
+    }, [modules]);
 
     const graphModules = useMemo(() => modules
             .filter(m => m && m.moduleId)
@@ -287,217 +243,65 @@ const CourseConstructorPage: React.FC = () => {
             {modules.length === 0 ? (
                 <p>В курсе пока нет модулей. Создайте первый модуль!</p>
             ) : (
-                <>
-                    <p style={{ fontSize: '13px', color: '#888', marginBottom: '8px' }}>
-                        Перетащите модули, чтобы изменить порядок
-                    </p>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {modules.map((module, index) => (
-                            <div
-                                key={module.moduleId}
-                                draggable
-                                onDragStart={() => handleDragStart(index)}
-                                onDragOver={(e) => handleDragOver(e, index)}
-                                onDrop={() => handleDrop(index)}
-                                onDragEnd={handleDragEnd}
-                                style={{
-                                    border: dragOverIndex === index
-                                        ? '2px dashed #007bff'
-                                        : '1px solid #ddd',
-                                    borderRadius: '8px',
-                                    padding: '16px',
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    transition: 'box-shadow 0.2s, border-color 0.15s',
-                                    cursor: 'grab',
-                                    background: dragOverIndex === index ? '#f0f7ff' : '#fff',
-                                    userSelect: 'none',
-                                }}
-                                onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)')}
-                                onMouseLeave={(e) => (e.currentTarget.style.boxShadow = 'none')}
-                            >
-                                <span style={{ color: '#bbb', marginRight: '12px', fontSize: '18px', cursor: 'grab' }}>
-                                    ⠿
-                                </span>
-
-                                <div
-                                    style={{ flex: 1, cursor: 'pointer' }}
-                                    onClick={() => handleModuleClick(module.moduleId)}
-                                >
-                                    <strong>{module.name}</strong>
-                                </div>
-
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); handleDeleteModule(module.moduleId); }}
-                                    style={{
-                                        background: '#dc3545',
-                                        color: 'white',
-                                        border: 'none',
-                                        padding: '6px 12px',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer',
-                                        marginLeft: '12px',
-                                    }}
-                                >
-                                    Удалить
-                                </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {modules.map(module => (
+                        <div
+                            key={module.moduleId}
+                            style={{
+                                border: '1px solid #ddd',
+                                borderRadius: '8px',
+                                padding: '16px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                transition: 'box-shadow 0.2s',
+                                cursor: 'pointer',
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.boxShadow = 'none')}
+                            onClick={() => handleModuleClick(module.moduleId)}
+                        >
+                            <div style={{ flex: 1 }}>
+                                <strong>{module.name}</strong>
                             </div>
-                        ))}
-                    </div>
-                </>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); handleDeleteModule(module.moduleId); }}
+                                style={{
+                                    background: '#dc3545',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '6px 12px',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    marginLeft: '12px',
+                                }}
+                            >
+                                Удалить
+                            </button>
+                        </div>
+                    ))}
+                </div>
             )}
 
+            {/* Граф зависимостей */}
             <div style={{ marginTop: '32px', borderTop: '2px solid #ddd', paddingTop: '20px' }}>
-                <h2>Управление зависимостями модулей</h2>
-                <div style={{ marginBottom: '24px', padding: '16px', border: '1px solid #ddd', borderRadius: '8px' }}>
-                    <h3>Добавить зависимость</h3>
-                    <p style={{ fontSize: '14px', color: '#666' }}>Блокирующий модуль → блокирует → зависимый модуль</p>
-                    <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                        <div style={{ flex: 1 }}>
-                            <label>Блокирующий модуль:</label>
-                            <select
-                                value={selectedBlocker}
-                                onChange={e => setSelectedBlocker(Number(e.target.value))}
-                                style={{ width: '100%', padding: '8px', marginTop: '4px' }}
-                            >
-                                <option value={0}>-- выберите --</option>
-                                {modules.map(m => (
-                                    <option key={m.moduleId} value={m.moduleId}>{m.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <label>Зависимый модуль (который блокируется):</label>
-                            <select
-                                value={selectedDependent}
-                                onChange={e => setSelectedDependent(Number(e.target.value))}
-                                style={{ width: '100%', padding: '8px', marginTop: '4px' }}
-                            >
-                                <option value={0}>-- выберите --</option>
-                                {modules.map(m => (
-                                    <option key={m.moduleId} value={m.moduleId}>{m.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <button onClick={handleAddDependency}>Добавить</button>
-                    </div>
-                </div>
-
-                <div style={{ marginBottom: '16px' }}>
-                    <button
-                        onClick={() => setViewMode('list')}
-                        style={{
-                            background: viewMode === 'list' ? '#007bff' : '#f0f0f0',
-                            color: viewMode === 'list' ? 'white' : '#333',
-                            marginRight: '8px',
-                            padding: '6px 12px',
-                            borderRadius: '4px',
-                            border: 'none',
-                            cursor: 'pointer',
-                        }}
-                    >
-                        Список зависимостей
-                    </button>
-                    <button
-                        onClick={() => setViewMode('graph')}
-                        style={{
-                            background: viewMode === 'graph' ? '#007bff' : '#f0f0f0',
-                            color: viewMode === 'graph' ? 'white' : '#333',
-                            padding: '6px 12px',
-                            borderRadius: '4px',
-                            border: 'none',
-                            cursor: 'pointer',
-                        }}
-                    >
-                        Граф зависимостей
-                    </button>
-                </div>
-
-                {viewMode === 'list' && (
-                    <>
-                        <h3>Существующие зависимости</h3>
-                        {loadingDeps && <p>Загрузка...</p>}
-                        {!loadingDeps && dependencies.length === 0 && <p>Нет зависимостей</p>}
-                        {!loadingDeps && dependencies.length > 0 && (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                {dependencies.map(dep => (
-                                    <div
-                                        key={dep.id}
-                                        style={{
-                                            border: '1px solid #ddd',
-                                            borderRadius: '6px',
-                                            padding: '12px',
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                        }}
-                                    >
-                                        <span>
-                                            <strong>{dep.blockerName}</strong> → блокирует → <strong>{dep.dependentName}</strong>
-                                        </span>
-                                        <button
-                                            onClick={() => handleDeleteDependency(dep.id)}
-                                            style={{
-                                                background: '#dc3545',
-                                                color: 'white',
-                                                border: 'none',
-                                                padding: '4px 12px',
-                                                borderRadius: '4px',
-                                            }}
-                                        >
-                                            Удалить
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </>
+                <h2>Граф зависимостей модулей</h2>
+                {loadingDeps && <p>Загрузка зависимостей...</p>}
+                {!loadingDeps && modules.length > 0 && (
+                    <DependencyGraph
+                        modules={graphModules}
+                        dependencies={graphEdges}
+                        onNodeClick={handleGraphNodeClick}
+                        onNodeDragStop={onNodeDragStop}
+                        onConnect={handleGraphConnect}
+                        onEdgeClick={handleGraphEdgeClick}
+                        readOnly={false}
+                    />
                 )}
-
-                {viewMode === 'graph' && (
-                    <>
-                        <h3>Граф зависимостей</h3>
-                        {loadingDeps && <p>Загрузка...</p>}
-                        {!loadingDeps && modules.length > 0 && (
-                            <DependencyGraph
-                                modules={graphModules}
-                                dependencies={graphEdges}
-                                onNodeClick={handleGraphNodeClick}
-                                onNodeDragStop={onNodeDragStop}
-                                readOnly={false}
-                                onConnect={async ({ source, target }) => {
-                                    try {
-                                        const success = await createDependency(source, target);
-                                        if (success) {
-                                            await loadDependencies(modules);
-                                            return true;
-                                        }
-                                        return false;
-                                    } catch (err) {
-                                        console.error(err);
-                                        return false;
-                                    }
-                                }}
-                                onEdgeClick={async (_edgeId, dependencyId) => {
-                                    try {
-                                        await deleteDependency(dependencyId);
-                                        await loadDependencies(modules);
-                                    } catch (err) {
-                                        console.error(err);
-                                        alert('Ошибка удаления зависимости');
-                                    }
-                                }}
-                            />
-                        )}
-                        {!loadingDeps && modules.length > 0 && graphEdges.length === 0 && (
-                            <p>Нет зависимостей для отображения в графе</p>
-                        )}
-                        {!loadingDeps && modules.length === 0 && <p>Нет модулей для отображения графа</p>}
-                    </>
-                )}
-
-                <button onClick={() => loadDependencies(modules)} style={{ marginTop: '16px' }}>Обновить данные</button>
+                {!loadingDeps && modules.length === 0 && <p>Нет модулей для отображения графа</p>}
+                <button onClick={() => loadDependencies(modules)} style={{ marginTop: '16px' }}>
+                    Обновить данные
+                </button>
             </div>
         </div>
     );
