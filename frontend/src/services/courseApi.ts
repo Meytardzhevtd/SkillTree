@@ -167,3 +167,8 @@ export const saveModulePositions = async (moduleId: number, x: number, y: number
   });
   return res.data;
 };
+
+export const deleteCourse = async (courseId: number) => {
+  const res = await api.delete(`/course/delete/${courseId}`);
+  return res.data;
+};

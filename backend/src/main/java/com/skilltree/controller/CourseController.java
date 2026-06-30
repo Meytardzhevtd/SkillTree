@@ -53,4 +53,10 @@ public class CourseController {
 		return courseService.updateCourse(id, dto.getName(), dto.getDescription());
 	}
 
+	@DeleteMapping("/delete/{id}")
+	public ResponseEntity<Void> deleteCourse(@PathVariable Long id) {
+		courseService.deleteCourse(id);
+		return ResponseEntity.noContent().build();
+	}
+
 }
