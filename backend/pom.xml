@@ -148,6 +148,13 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>io.gatling.highcharts</groupId>
+            <artifactId>gatling-charts-highcharts</artifactId>
+            <version>3.12.0</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -190,8 +197,21 @@
                 <version>3.5.2</version>
                 <configuration>
                     <argLine>-XX:+EnableDynamicAgentLoading</argLine>
+                    <excludes>
+                        <exclude>**/loadtest/**</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>io.gatling</groupId>
+                <artifactId>gatling-maven-plugin</artifactId>
+                <version>4.12.2</version>
+                <configuration>
+                    <runMultipleSimulations>false</runMultipleSimulations>
                 </configuration>
             </plugin>
         </plugins>
     </build>
+
 </project>
